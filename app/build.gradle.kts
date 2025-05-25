@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt") // data binding 추가
 }
 
 android {
@@ -32,6 +33,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+    buildFeatures {
+        viewBinding = true // view binding 추가.
+        dataBinding = true // data binding 추가.
+        buildConfig = true // buildConfig 사용
     }
 }
 
