@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.jupond.meetjyou_android"
+    namespace = "com.doggetdrunk.meetjyou_android"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.jupond.meetjyou_android"
+        applicationId = "com.doggetdrunk.meetjyou_android"
         minSdk = 23
         targetSdk = 34
         versionCode = 1
@@ -58,5 +58,9 @@ dependencies {
 
     // tablayout
     implementation("androidx.viewpager2:viewpager2:1.1.0")
+
+    //Glide
+    implementation("com.github.bumptech.glide:glide:4.15.1")
+
 
 }
