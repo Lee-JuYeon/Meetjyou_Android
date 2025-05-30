@@ -1,0 +1,103 @@
+<layout
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+        <!-- 필요한 데이터 바인딩 변수를 여기에 선언 -->
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="10dp">
+
+            <!-- Top Buttons -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <Button
+                    android:id="@+id/logo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:text="logo" />
+
+                <Button
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:text="🔔" />
+            </RelativeLayout>
+
+            <!-- Search -->
+            <EditText
+                android:id="@+id/search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/background_search"
+                android:hint="@string/home_search"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/buttonList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false" />
+
+            <!-- Hot Party Title -->
+            <TextView
+                android:id="@+id/hotpostTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/home_hotparty_list_title"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- Hot Post List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/hotpostList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="vertical"
+                android:nestedScrollingEnabled="false" />
+
+            <!-- Recommendation Title -->
+            <TextView
+                android:id="@+id/recommendationTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/home_location_recommendation_list_title"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <!-- Recommendation List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recommendationList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:nestedScrollingEnabled="false" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</layout>
