@@ -1,4 +1,4 @@
-package com.jupond.meetjyou_android
+package com.doggetdrunk.meetjyou_android
 
 import org.junit.Test
 

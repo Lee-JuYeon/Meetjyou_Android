@@ -1,4 +1,4 @@
-package com.jupond.meetjyou_android
+package com.doggetdrunk.meetjyou_android
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.jupond.meetjyou_android", appContext.packageName)
+        assertEquals("com.doggetdrunk.meetjyou_android", appContext.packageName)
     }
 }
