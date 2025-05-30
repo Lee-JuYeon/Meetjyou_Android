@@ -143,6 +143,9 @@ class HomeFragment : Fragment() {
             }
             recycledViewPool.setMaxRecycledViews(0,3)
             addItemDecoration(RecyclerItemGap(verticalSpace = 10, horizontalSpace = 0, includeEdge = false))
+
+            // HotPost 리스트 독립 스크롤 활성화
+            isNestedScrollingEnabled = true
         }
 
 
@@ -172,6 +175,7 @@ class HomeFragment : Fragment() {
             }
             recycledViewPool.setMaxRecycledViews(0,3)
             addItemDecoration(RecyclerItemGap(verticalSpace = 0, horizontalSpace = 10, includeEdge = false))
+            isNestedScrollingEnabled = true // Recommendation 리스트 독립 스크롤 활성화
         }
 
 
