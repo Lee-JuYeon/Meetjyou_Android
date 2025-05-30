@@ -79,7 +79,7 @@
                 android:layout_height="250dp"
                 android:layout_marginTop="20dp"
                 android:orientation="vertical"
-                android:nestedScrollingEnabled="true" />
+                android:nestedScrollingEnabled="tru선" />
 
             <!-- Recommendation Title -->
             <TextView
