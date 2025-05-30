@@ -22,60 +22,126 @@ import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.IReco
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.RecommendationAdapter
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.RecommendationModel
 import com.doggetdrunk.meetjyou_android.vm.PartyViewModel
-
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 
 class HomeFragment : Fragment() {
 
-    private lateinit var binding : FragmentHomeBinding
+    companion object {
+        private const val TAG = "HomeFragment"
+        private const val HOTPOST_ITEM_HEIGHT_DP = 80
+        private const val RECOMMENDATION_HEIGHT_DP = 200
+        private const val MAX_HOTPOST_ITEMS = 3
+    }
+
+    private var _binding: FragmentHomeBinding? = null
+    private val binding
+        get() = _binding!!
+
     private val partyVM : PartyViewModel by activityViewModels()
+    // ViewPool 재사용을 위한 공유 풀
+    private val sharedRecyclerViewPool by lazy { RecyclerView.RecycledViewPool() }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = FragmentHomeBinding.inflate(inflater, container, false).apply {
-            lifecycleOwner = viewLifecycleOwner
-        }
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setPartyButtonList(recyclerview = binding.buttonList)
-        setHotPostingList(recyclerview = binding.hotpostList)
-        setRecommendationList(recyclerview = binding.recommendationList)
+        // UI 초기화는 한 번만
+        if (savedInstanceState == null) {
+            initializeUI()
+        }
 
-        // Observer를 먼저 설정
-        setVM()
-
-        // 그 다음에 데이터 로드
-        loadData()
+        observeViewModel()
+        loadInitialDataIfNeeded()
     }
 
-    private fun setVM(){
-        try{
-            // Observer들을 먼저 설정
-            partyVM.hotPostList.observe(viewLifecycleOwner){ list : List<PartyModel> ->
-                Log.d("HomeFragment", "HotPost list updated: ${list.size} items")
-                hotpostListAdapter?.updateList(list)
-            }
+    private fun initializeUI() {
+        try {
+            // RecyclerView들을 병렬로 초기화
+            setPartyButtonList(binding.buttonList)
+            setHotPostingList(binding.hotpostList)
+            setRecommendationList(binding.recommendationList)
 
-            partyVM.recommendations.observe(viewLifecycleOwner){ list : List<RecommendationModel> ->
-                Log.d("HomeFragment", "Recommendations updated: ${list.size} items")
-                recommendationAdapter?.updateList(list)
-            }
-
-        }catch (e:Exception){
-            Log.e("mException", "HomeFragment, setVM // Exception : ${e.localizedMessage}")
+            Log.d("HomeFragment", "UI initialization completed")
+        } catch (e: Exception) {
+            Log.e("mException", "HomeFragment, initializedUI // Exception :${e.localizedMessage}")
         }
     }
 
-    private fun loadData(){
-        try{
-            // Observer 설정 후 데이터 로드
-            partyVM.loadPartyList()
-            partyVM.loadHotPostList()
-            partyVM.loadRecommendations()
-        }catch (e:Exception){
-            Log.e("mException", "HomeFragment, loadData // Exception : ${e.localizedMessage}")
+    // VM observing FLow로 성능 안정화
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // 여러 Flow를 병렬로 수집
+                launch {
+                    partyVM.hotPostList.collectLatest { list ->
+                        if (list.isNotEmpty()) {
+                            // 최대 아이템 수 제한으로 성능 향상
+                            val limitedList = list.take(MAX_HOTPOST_ITEMS)
+                            hotpostListAdapter?.updateList(limitedList)
+
+                            // 동적 높이 설정
+                            val density = resources.displayMetrics.density
+                            val itemHeight = (HOTPOST_ITEM_HEIGHT_DP * density).toInt()
+                            val spacing = (10 * density).toInt()
+                            val totalHeight = (limitedList.size * itemHeight) + ((limitedList.size - 1) * spacing)
+
+                            binding.hotpostList.layoutParams = binding.hotpostList.layoutParams.apply {
+                                height = totalHeight
+                            }
+
+                        } else {
+                            Log.w(TAG, "HotPost list is empty")
+                        }
+                    }
+                }
+
+                launch {
+                    partyVM.recommendations.collectLatest { list ->
+                        if (list.isNotEmpty()) {
+                            recommendationAdapter?.updateList(list)
+                        } else {
+                            Log.e("mException", "Recommendations list is empty")
+                        }
+                    }
+                }
+
+                launch {
+                    partyVM.isLoading.collectLatest { isLoading ->
+                        Log.d(TAG, "Loading state: $isLoading")
+                    }
+                }
+
+                launch {
+                    partyVM.error.collectLatest { error ->
+                        if (error != null) {
+                            Log.e("mException", "Error occurred: $error")
+                            // TODO: 에러 UI 표시
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 데이터 로드 - 중복 호출 방지
+    private fun loadInitialDataIfNeeded() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                // 병렬로 데이터 로드
+                launch { partyVM.loadHotPostList() }
+                launch { partyVM.loadRecommendations() }
+            } catch (e: Exception) {
+                Log.e("mException", "HomeFragment, loadInitialDataIfNeeded // Exception : ${e.localizedMessage}")
+            }
         }
     }
 
@@ -88,41 +154,59 @@ class HomeFragment : Fragment() {
     }
 
     private var partyButtonListAdapter : PartyButtonsAdapter? = null
-    private fun setPartyButtonList(recyclerview : RecyclerView){
-        if (partyButtonListAdapter == null){
-            partyButtonListAdapter = PartyButtonsAdapter()
-        }
-
-        recyclerview.apply {
-            adapter = partyButtonListAdapter
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false).apply {
-                initialPrefetchItemCount = 2
-            }
-            recycledViewPool.setMaxRecycledViews(0,2)
-            addItemDecoration(RecyclerItemGap(verticalSpace = 0, horizontalSpace = 10, includeEdge = false))
-        }
-
-        val mList = listOf<PartyButtonModel>(
-            PartyButtonModel(uid = "uid1", imgRes = R.drawable.flag, title = requireContext().getString(R.string.home_party_recruitment_title), description = requireContext().getString(R.string.home_party_recruitment_description)),
-            PartyButtonModel(uid = "uid2", imgRes = R.drawable.letter, title = requireContext().getString(R.string.home_party_apply_title), description = requireContext().getString(R.string.home_party_apply_description))
-        )
-
-        try{
-            partyButtonListAdapter?.updateList(mList)
-            partyButtonListAdapter?.setOnClickListener(object :
-                IPartyButtonHolderClickListener<PartyButtonModel> {
-                override fun onClick(model: PartyButtonModel) {
-                    when(model.title){
-                        "파티 모집" -> {
-
-                        }
-                        "파티 신청" -> {
-
-                        }
-                    }
+    private val partyButtonClickListener = object : IPartyButtonHolderClickListener<PartyButtonModel> {
+        override fun onClick(model: PartyButtonModel) {
+            when (model.uid) {
+                "recruitment" -> {
+                    // TODO: 파티 모집 화면으로 이동
                 }
-            })
+                "apply" -> {
+                    // TODO: 파티 신청 화면으로 이동
+                }
+            }
+        }
+    }
+
+    private fun setPartyButtonList(recyclerview : RecyclerView){
+        try{
+            if (partyButtonListAdapter == null) {
+                partyButtonListAdapter = PartyButtonsAdapter().apply {
+                    setOnClickListener(partyButtonClickListener)
+                }
+            }
+
+            recyclerview.apply {
+                adapter = partyButtonListAdapter
+                layoutManager = LinearLayoutManager(
+                    context,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                ).apply {
+                    initialPrefetchItemCount = 2
+                    isItemPrefetchEnabled = true
+                }
+
+                setRecycledViewPool(sharedRecyclerViewPool)
+                setHasFixedSize(true)
+                setItemViewCacheSize(4)
+
+                // 스크롤 최적화
+                isNestedScrollingEnabled = false
+
+                // ItemDecoration
+                addItemDecoration(RecyclerItemGap(
+                    verticalSpace = 0,
+                    horizontalSpace = 10,
+                    includeEdge = false
+                ))
+            }
+
+            val mList = listOf<PartyButtonModel>(
+                PartyButtonModel(uid = "uid1", imgRes = R.drawable.flag, title = requireContext().getString(R.string.home_party_recruitment_title), description = requireContext().getString(R.string.home_party_recruitment_description)),
+                PartyButtonModel(uid = "uid2", imgRes = R.drawable.letter, title = requireContext().getString(R.string.home_party_apply_title), description = requireContext().getString(R.string.home_party_apply_description))
+            )
+
+            partyButtonListAdapter?.updateList(mList)
         }catch (e:Exception){
             Log.d("HomeFragment", "HomeFragment, setPartyButtonList, RecyclerView에 데이터 업데이트 완료")
         }
@@ -130,65 +214,120 @@ class HomeFragment : Fragment() {
 
 
     private var hotpostListAdapter : HotpostAdapter? = null
+    private val hotpostClickListener = object : IHotpostHolderClickListener<PartyModel> {
+        override fun onClick(model: PartyModel) {
+            Log.e("mException", "HomeFragment, 핫포스트 클릭 : ${model.partyTitle}")
+        }
+    }
     private fun setHotPostingList(recyclerview : RecyclerView){
-        if (hotpostListAdapter == null){
-            hotpostListAdapter = HotpostAdapter()
-        }
-
-        recyclerview.apply {
-            adapter = hotpostListAdapter
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false).apply {
-                initialPrefetchItemCount = 3
-            }
-            recycledViewPool.setMaxRecycledViews(0,3)
-            addItemDecoration(RecyclerItemGap(verticalSpace = 10, horizontalSpace = 0, includeEdge = false))
-
-            // HotPost 리스트 독립 스크롤 활성화
-            isNestedScrollingEnabled = true
-        }
-
-
         try{
-            hotpostListAdapter?.setOnClickListener(object :
-                IHotpostHolderClickListener<PartyModel> {
-                override fun onClick(model: PartyModel) {
-                    Log.d("HomeFragment", "HomeFragment, setHotPostingList, ${model.partyTitle}이 클릭됨")
+            if (hotpostListAdapter == null) {
+                hotpostListAdapter = HotpostAdapter().apply {
+                    setOnClickListener(hotpostClickListener)
                 }
-            })
+            }
+
+            recyclerview.apply {
+                adapter = hotpostListAdapter
+                layoutManager = LinearLayoutManager(context).apply {
+                    initialPrefetchItemCount = 3
+                    isItemPrefetchEnabled = true
+                }
+
+                // ViewPool 최적화
+                setRecycledViewPool(sharedRecyclerViewPool)
+                setHasFixedSize(true)
+                setItemViewCacheSize(6)
+
+                // 스크롤 최적화
+                isNestedScrollingEnabled = true
+
+                // ItemDecoration
+                addItemDecoration(RecyclerItemGap(
+                    verticalSpace = 10,
+                    horizontalSpace = 0,
+                    includeEdge = false
+                ))
+            }
         }catch (e:Exception){
             Log.e("mException", "HomeFragment, setHotPostingList // Exception : ${e.localizedMessage}")
         }
     }
 
     private var recommendationAdapter : RecommendationAdapter? = null
+    private val recommendationClickListener = object : IRecommendationHolderClickListener<RecommendationModel> {
+        override fun onClick(model: RecommendationModel) {
+            Log.e("mException", "HomeFragment, 추천지역 아이템 클릭 : ${model.title}")
+        }
+    }
     private fun setRecommendationList(recyclerview: RecyclerView){
-        if (recommendationAdapter == null){
-            recommendationAdapter = RecommendationAdapter()
-        }
-
-        recyclerview.apply {
-            adapter = recommendationAdapter
-            setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false).apply {
-                initialPrefetchItemCount = 3
-            }
-            recycledViewPool.setMaxRecycledViews(0,3)
-            addItemDecoration(RecyclerItemGap(verticalSpace = 0, horizontalSpace = 10, includeEdge = false))
-            isNestedScrollingEnabled = true // Recommendation 리스트 독립 스크롤 활성화
-        }
-
-
         try{
-            recommendationAdapter?.setOnClickListener(object :
-                IRecommendationHolderClickListener<RecommendationModel> {
-                override fun onClick(model: RecommendationModel) {
-                    Log.d("HomeFragment", "HomeFragment, setRecommendationList, ${model.title}이 클릭됨")
+            if (recommendationAdapter == null) {
+                recommendationAdapter = RecommendationAdapter().apply {
+                    setOnClickListener(recommendationClickListener)
                 }
-            })
+            }
+
+            recyclerview.apply {
+                adapter = recommendationAdapter
+                layoutManager = LinearLayoutManager(
+                    context,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                ).apply {
+                    initialPrefetchItemCount = 3
+                    isItemPrefetchEnabled = true
+                }
+
+                // ViewPool 최적화
+                setRecycledViewPool(sharedRecyclerViewPool)
+                setHasFixedSize(true)
+                setItemViewCacheSize(6)
+
+                // 스크롤 최적화
+                isNestedScrollingEnabled = true
+
+                // ItemDecoration
+                addItemDecoration(RecyclerItemGap(
+                    verticalSpace = 0,
+                    horizontalSpace = 10,
+                    includeEdge = false
+                ))
+            }
         }catch (e:Exception){
             Log.d("HomeFragment", "HomeFragment, setRecommendationList, RecyclerView에 데이터 업데이트 완료")
         }
     }
 
+    override fun onDestroyView() {
+        try {
+            // RecyclerView adapter 해제
+            binding.buttonList.adapter = null
+            binding.hotpostList.adapter = null
+            binding.recommendationList.adapter = null
+
+            // Adapter 참조 해제 - 메모리 정리
+            partyButtonListAdapter = null
+            hotpostListAdapter = null
+            recommendationAdapter = null
+
+            // ViewBinding 정리
+            _binding = null
+
+        } catch (e: Exception) {
+            Log.e("mException", "HomeFragment, onDestroyView // Exception: ${e.localizedMessage}")
+        } finally {
+            super.onDestroyView()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // 필요시 데이터 로딩 일시정지
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 필요시 데이터 새로고침
+    }
 }
