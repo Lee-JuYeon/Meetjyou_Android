@@ -23,6 +23,7 @@ import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.Recom
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.RecommendationModel
 import com.doggetdrunk.meetjyou_android.vm.PartyViewModel
 
+
 class HomeFragment : Fragment() {
 
     private lateinit var binding : FragmentHomeBinding
@@ -42,27 +43,42 @@ class HomeFragment : Fragment() {
         setHotPostingList(recyclerview = binding.hotpostList)
         setRecommendationList(recyclerview = binding.recommendationList)
 
+        // Observer를 먼저 설정
         setVM()
 
+        // 그 다음에 데이터 로드
+        loadData()
     }
 
     private fun setVM(){
         try{
+            // Observer들을 먼저 설정
             partyVM.hotPostList.observe(viewLifecycleOwner){ list : List<PartyModel> ->
+                Log.d("HomeFragment", "HotPost list updated: ${list.size} items")
                 hotpostListAdapter?.updateList(list)
             }
 
             partyVM.recommendations.observe(viewLifecycleOwner){ list : List<RecommendationModel> ->
+                Log.d("HomeFragment", "Recommendations updated: ${list.size} items")
                 recommendationAdapter?.updateList(list)
             }
 
+        }catch (e:Exception){
+            Log.e("mException", "HomeFragment, setVM // Exception : ${e.localizedMessage}")
+        }
+    }
+
+    private fun loadData(){
+        try{
+            // Observer 설정 후 데이터 로드
             partyVM.loadPartyList()
             partyVM.loadHotPostList()
             partyVM.loadRecommendations()
         }catch (e:Exception){
-            Log.e("mException", "HomeActivity, setVM // Exception : ${e.localizedMessage}")
+            Log.e("mException", "HomeFragment, loadData // Exception : ${e.localizedMessage}")
         }
     }
+
     private fun goNotificationActivity(){
 
     }
@@ -108,7 +124,7 @@ class HomeFragment : Fragment() {
                 }
             })
         }catch (e:Exception){
-            Log.d("HomeActivity", "HomeActivity, setPartyButtonList, RecyclerView에 데이터 업데이트 완료")
+            Log.d("HomeFragment", "HomeFragment, setPartyButtonList, RecyclerView에 데이터 업데이트 완료")
         }
     }
 
@@ -134,11 +150,11 @@ class HomeFragment : Fragment() {
             hotpostListAdapter?.setOnClickListener(object :
                 IHotpostHolderClickListener<PartyModel> {
                 override fun onClick(model: PartyModel) {
-                    Log.d("HomeActivity", "HomeActivity, setHotPostingList, ${model.partyTitle}이 클릭됨")
+                    Log.d("HomeFragment", "HomeFragment, setHotPostingList, ${model.partyTitle}이 클릭됨")
                 }
             })
         }catch (e:Exception){
-            Log.e("mException", "HomeActivity, setHotPostingList // Exception : ${e.localizedMessage}")
+            Log.e("mException", "HomeFragment, setHotPostingList // Exception : ${e.localizedMessage}")
         }
     }
 
@@ -163,13 +179,12 @@ class HomeFragment : Fragment() {
             recommendationAdapter?.setOnClickListener(object :
                 IRecommendationHolderClickListener<RecommendationModel> {
                 override fun onClick(model: RecommendationModel) {
-                    Log.d("HomeActivity", "HomeActivity, setRecommendationList, ${model.title}이 클릭됨")
+                    Log.d("HomeFragment", "HomeFragment, setRecommendationList, ${model.title}이 클릭됨")
                 }
             })
         }catch (e:Exception){
-            Log.d("HomeActivity", "HomeActivity, setRecommendationList, RecyclerView에 데이터 업데이트 완료")
+            Log.d("HomeFragment", "HomeFragment, setRecommendationList, RecyclerView에 데이터 업데이트 완료")
         }
     }
-
 
 }
