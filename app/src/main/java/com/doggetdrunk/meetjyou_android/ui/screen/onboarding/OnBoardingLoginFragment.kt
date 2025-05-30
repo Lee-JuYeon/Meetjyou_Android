@@ -6,8 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.doggetdrunk.meetjyou_android.MainActivity
 import com.doggetdrunk.meetjyou_android.databinding.FragmentOnboardingLoginBinding
-import com.doggetdrunk.meetjyou_android.ui.screen.home.HomeActivity
+import com.doggetdrunk.meetjyou_android.ui.screen.main.home.HomeFragment
 
 class OnBoardingLoginFragment : Fragment(){
     private var _binding: FragmentOnboardingLoginBinding? = null
@@ -46,7 +47,7 @@ class OnBoardingLoginFragment : Fragment(){
 
         binding.applelogin.setOnClickListener {
             // Fragment에서 Activity로 이동
-            val intent = Intent(requireContext(), HomeActivity::class.java)
+            val intent = Intent(requireContext(), MainActivity::class.java)
             startActivity(intent)
 
             // 현재 OnBoardingActivity 종료

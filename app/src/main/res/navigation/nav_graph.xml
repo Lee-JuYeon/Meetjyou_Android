@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/fragment_home">
+
+    <fragment
+        android:id="@+id/fragment_home"
+        android:name="com.doggetdrunk.meetjyou_android.ui.screen.main.home.HomeFragment"
+        android:layout="@layout/fragment_home"
+        android:label="홈" />
+
+    <fragment
+        android:id="@+id/fragment_lounge"
+        android:name="com.doggetdrunk.meetjyou_android.ui.screen.main.lounge.LoungeFragment"
+        android:layout="@layout/fragment_lounge"
+        android:label="라운지" />
+
+    <fragment
+        android:id="@+id/fragment_party"
+        android:name="com.doggetdrunk.meetjyou_android.ui.screen.main.party.PartyFragment"
+        android:layout="@layout/fragment_party"
+        android:label="A" />
+
+    <fragment
+        android:id="@+id/fragment_travel"
+        android:name="com.doggetdrunk.meetjyou_android.ui.screen.main.travel.TravelFragment"
+        android:layout="@layout/fragment_travel"
+        android:label="B" />
+
+    <fragment
+        android:id="@+id/fragment_mypage"
+        android:name="com.doggetdrunk.meetjyou_android.ui.screen.main.mypage.MyPageFragment"
+        android:layout="@layout/fragment_mypage"
+        android:label="MyPage" />
+
+</navigation>

@@ -3,15 +3,10 @@ package com.doggetdrunk.meetjyou_android.ui.screen.onboarding
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.doggetdrunk.meetjyou_android.MainActivity
 import com.google.android.material.tabs.TabLayoutMediator
-import com.doggetdrunk.meetjyou_android.R
 import com.doggetdrunk.meetjyou_android.databinding.ActivityOnboardingBinding
-import com.doggetdrunk.meetjyou_android.databinding.FragmentOnboardingBinding
-import com.doggetdrunk.meetjyou_android.ui.screen.home.HomeActivity
 
 class OnBoardingActivity : AppCompatActivity() {
 
@@ -48,7 +43,7 @@ class OnBoardingActivity : AppCompatActivity() {
     }
 
     fun navigateToLogin() {
-        startActivity(Intent(this, HomeActivity::class.java))
+        startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
 }

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/fragment_home"
+        android:icon="@drawable/ic_launcher_background"
+        android:title="@string/bottom_navi_home" />
+
+    <item
+        android:id="@+id/fragment_lounge"
+        android:icon="@drawable/ic_launcher_background"
+        android:title="@string/bottom_navi_lounge" />
+
+    <item
+        android:id="@+id/fragment_party"
+        android:icon="@drawable/ic_launcher_background"
+        android:title="@string/bottom_navi_party" />
+
+    <item
+        android:id="@+id/fragment_travel"
+        android:icon="@drawable/ic_launcher_background"
+        android:title="@string/bottom_navi_travel" />
+
+    <item
+        android:id="@+id/fragment_mypage"
+        android:icon="@drawable/ic_launcher_background"
+        android:title="@string/bottom_navi_mypage" />
+
+</menu>
