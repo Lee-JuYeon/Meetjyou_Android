@@ -7,9 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.doggetdrunk.meetjyou_android.R
@@ -27,35 +24,28 @@ import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.Recom
 import com.doggetdrunk.meetjyou_android.vm.PartyViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 
 class HomeFragment : Fragment() {
 
     companion object {
         private const val TAG = "HomeFragment"
         private const val HOTPOST_ITEM_HEIGHT_DP = 80
+        private const val RECOMMENDATION_HEIGHT_DP = 200
         private const val MAX_HOTPOST_ITEMS = 3
     }
 
-    // ViewBinding
     private var _binding: FragmentHomeBinding? = null
-    private val binding get() = _binding!!
+    private val binding
+        get() = _binding!!
 
-    // ViewModel
-    private val partyVM: PartyViewModel by activityViewModels()
-
-    // Adapters
-    private var partyButtonsAdapter: PartyButtonsAdapter? = null
-    private var hotpostAdapter: HotpostAdapter? = null
-    private var recommendationAdapter: RecommendationAdapter? = null
-
-    // RecyclerView 성능 최적화를 위한 공유 ViewPool
+    // ViewPool 재사용을 위한 공유 풀
     private val sharedRecyclerViewPool by lazy { RecyclerView.RecycledViewPool() }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -63,429 +53,320 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupUI()
-        setupRecyclerViews()
+        // UI 초기화는 한 번만
+        if (savedInstanceState == null) {
+            initializeUI()
+        }
+        setupSwipeRefresh()
+
         observeViewModel()
-        loadData()
+        loadInitialDataIfNeeded()
     }
 
-    /**
-     * UI 초기 설정
-     */
-    private fun setupUI() {
+    private fun initializeUI() {
         try {
-            // 상단 버튼들 클릭 리스너
-            binding.logo.setOnClickListener {
-                // TODO: 로고 클릭 처리
-                Log.d(TAG, "Logo clicked")
-            }
+            // RecyclerView들을 병렬로 초기화
+            setPartyButtonList(binding.buttonList)
+            setHotPostingList(binding.hotpostList)
+            setRecommendationList(binding.recommendationList)
 
-            binding.notificationBtn.setOnClickListener {
-                // TODO: 알림 화면으로 이동
-                goToNotificationActivity()
-            }
-
-            // 검색창 클릭 리스너
-            binding.search.setOnClickListener {
-                // TODO: 검색 화면으로 이동
-                searchTravelSpot()
-            }
-
-            // SwipeRefreshLayout 설정
-            binding.swipeRefreshLayout.setOnRefreshListener {
-                refreshData()
-            }
-
+            Log.d("HomeFragment", "UI initialization completed")
         } catch (e: Exception) {
-            Log.e(TAG, "Error in setupUI: ${e.message}", e)
+            Log.e("mException", "HomeFragment, initializedUI // Exception :${e.localizedMessage}")
         }
     }
 
-    /**
-     * RecyclerView들 설정
-     */
-    private fun setupRecyclerViews() {
-        try {
-            setupPartyButtonsList()
-            setupHotPostList()
-            setupRecommendationList()
-
-            Log.d(TAG, "All RecyclerViews setup completed")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in setupRecyclerViews: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 파티 버튼 리스트 설정
-     */
-    private fun setupPartyButtonsList() {
-        // Adapter 초기화
-        partyButtonsAdapter = PartyButtonsAdapter().apply {
-            setOnClickListener(object : IPartyButtonHolderClickListener<PartyButtonModel> {
-                override fun onClick(model: PartyButtonModel) {
-                    handlePartyButtonClick(model)
-                }
-            })
-        }
-
-        // RecyclerView 설정
-        binding.buttonList.apply {
-            adapter = partyButtonsAdapter
-            layoutManager = LinearLayoutManager(
-                requireContext(),
-                LinearLayoutManager.HORIZONTAL,
-                false
-            ).apply {
-                initialPrefetchItemCount = 2
-                isItemPrefetchEnabled = true
-            }
-
-            // 성능 최적화 설정
-            setRecycledViewPool(sharedRecyclerViewPool)
-            setHasFixedSize(true)
-            setItemViewCacheSize(4)
-            isNestedScrollingEnabled = false
-
-            // 아이템 간격 설정
-            addItemDecoration(RecyclerItemGap(
-                verticalSpace = 0,
-                horizontalSpace = 10,
-                includeEdge = false
-            ))
-        }
-
-        // 초기 데이터 설정
-        val buttonList = createPartyButtonList()
-        partyButtonsAdapter?.updateList(buttonList)
-    }
-
-    /**
-     * 핫포스트 리스트 설정
-     */
-    private fun setupHotPostList() {
-        // Adapter 초기화
-        hotpostAdapter = HotpostAdapter().apply {
-            setOnClickListener(object : IHotpostHolderClickListener<PartyModel> {
-                override fun onClick(model: PartyModel) {
-                    handleHotpostClick(model)
-                }
-            })
-        }
-
-        // RecyclerView 설정
-        binding.hotpostList.apply {
-            adapter = hotpostAdapter
-            layoutManager = LinearLayoutManager(requireContext()).apply {
-                initialPrefetchItemCount = 3
-                isItemPrefetchEnabled = true
-            }
-
-            // 성능 최적화 설정
-            setRecycledViewPool(sharedRecyclerViewPool)
-            setHasFixedSize(true)
-            setItemViewCacheSize(6)
-            isNestedScrollingEnabled = true
-
-            // 아이템 간격 설정
-            addItemDecoration(RecyclerItemGap(
-                verticalSpace = 10,
-                horizontalSpace = 0,
-                includeEdge = false
-            ))
-        }
-    }
-
-    /**
-     * 추천 리스트 설정
-     */
-    private fun setupRecommendationList() {
-        // Adapter 초기화
-        recommendationAdapter = RecommendationAdapter().apply {
-            setOnClickListener(object : IRecommendationHolderClickListener<RecommendationModel> {
-                override fun onClick(model: RecommendationModel) {
-                    handleRecommendationClick(model)
-                }
-            })
-        }
-
-        // RecyclerView 설정
-        binding.recommendationList.apply {
-            adapter = recommendationAdapter
-            layoutManager = LinearLayoutManager(
-                requireContext(),
-                LinearLayoutManager.HORIZONTAL,
-                false
-            ).apply {
-                initialPrefetchItemCount = 3
-                isItemPrefetchEnabled = true
-            }
-
-            // 성능 최적화 설정
-            setRecycledViewPool(sharedRecyclerViewPool)
-            setHasFixedSize(true)
-            setItemViewCacheSize(6)
-            isNestedScrollingEnabled = true
-
-            // 아이템 간격 설정
-            addItemDecoration(RecyclerItemGap(
-                verticalSpace = 0,
-                horizontalSpace = 10,
-                includeEdge = false
-            ))
-        }
-    }
-
-    /**
-     * ViewModel 옵저빙
-     */
+    private val partyVM : PartyViewModel by activityViewModels()
+    // VM observing FLow로 성능 안정화
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-
-                // 핫포스트 리스트 관찰
+                // 여러 Flow를 병렬로 수집
                 launch {
                     partyVM.hotPostList.collectLatest { list ->
-                        handleHotPostListUpdate(list)
+                        if (list.isNotEmpty()) {
+                            // 최대 아이템 수 제한으로 성능 향상
+                            val limitedList = list.take(MAX_HOTPOST_ITEMS)
+                            hotpostListAdapter?.updateList(limitedList)
+
+                            // 동적 높이 설정
+                            val density = resources.displayMetrics.density
+                            val itemHeight = (HOTPOST_ITEM_HEIGHT_DP * density).toInt()
+                            val spacing = (10 * density).toInt()
+                            val totalHeight = (limitedList.size * itemHeight) + ((limitedList.size - 1) * spacing)
+
+                            binding.hotpostList.layoutParams = binding.hotpostList.layoutParams.apply {
+                                height = totalHeight
+                            }
+
+                        } else {
+                            Log.w(TAG, "HotPost list is empty")
+                        }
                     }
                 }
 
-                // 추천 리스트 관찰
                 launch {
                     partyVM.recommendations.collectLatest { list ->
-                        handleRecommendationListUpdate(list)
+                        if (list.isNotEmpty()) {
+                            recommendationAdapter?.updateList(list)
+                        } else {
+                            Log.e("mException", "Recommendations list is empty")
+                        }
                     }
                 }
 
-                // 로딩 상태 관찰
                 launch {
                     partyVM.isLoading.collectLatest { isLoading ->
-                        handleLoadingStateUpdate(isLoading)
+                        Log.d(TAG, "Loading state: $isLoading")
                     }
                 }
 
-                // 에러 상태 관찰
                 launch {
                     partyVM.error.collectLatest { error ->
-                        handleErrorUpdate(error)
+                        if (error != null) {
+                            Log.e("mException", "Error occurred: $error")
+                            // TODO: 에러 UI 표시
+                        }
                     }
                 }
             }
         }
     }
 
-    /**
-     * 초기 데이터 로드
-     */
-    private fun loadData() {
+    // 데이터 로드 - 중복 호출 방지
+    private fun loadInitialDataIfNeeded() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 // 병렬로 데이터 로드
                 launch { partyVM.loadHotPostList() }
                 launch { partyVM.loadRecommendations() }
-
-                Log.d(TAG, "Initial data loading started")
             } catch (e: Exception) {
-                Log.e(TAG, "Error in loadData: ${e.message}", e)
+                Log.e("mException", "HomeFragment, loadInitialDataIfNeeded // Exception : ${e.localizedMessage}")
             }
         }
     }
 
-    /**
-     * 데이터 새로고침
-     */
-    private fun refreshData() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                // 강제 새로고침
-                launch { partyVM.refreshHotPostList(forceRefresh = true) }
-                launch { partyVM.refreshRecommendations(forceRefresh = true) }
+    private fun goNotificationActivity(){
 
-                Log.d(TAG, "Data refresh started")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error in refreshData: ${e.message}", e)
-            } finally {
-                // SwipeRefreshLayout 종료
-                binding.swipeRefreshLayout.isRefreshing = false
-            }
-        }
     }
 
-    /**
-     * 파티 버튼 리스트 생성
-     */
-    private fun createPartyButtonList(): List<PartyButtonModel> {
-        return listOf(
-            PartyButtonModel(
-                uid = "recruitment",
-                imgRes = R.drawable.flag,
-                title = getString(R.string.home_party_recruitment_title),
-                description = getString(R.string.home_party_recruitment_description)
-            ),
-            PartyButtonModel(
-                uid = "apply",
-                imgRes = R.drawable.letter,
-                title = getString(R.string.home_party_apply_title),
-                description = getString(R.string.home_party_apply_description)
-            )
-        )
+    private fun searchTravelSpot(){
+
     }
 
-    /**
-     * 핫포스트 리스트 업데이트 처리
-     */
-    private fun handleHotPostListUpdate(list: List<PartyModel>) {
-        try {
-            if (list.isNotEmpty()) {
-                // 최대 아이템 수 제한
-                val limitedList = list.take(MAX_HOTPOST_ITEMS)
-                hotpostAdapter?.updateList(limitedList)
-
-                // 동적 높이 설정
-                updateHotPostListHeight(limitedList.size)
-
-                Log.d(TAG, "HotPost list updated: ${limitedList.size} items")
-            } else {
-                Log.w(TAG, "HotPost list is empty")
-                hotpostAdapter?.updateList(emptyList())
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in handleHotPostListUpdate: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 추천 리스트 업데이트 처리
-     */
-    private fun handleRecommendationListUpdate(list: List<RecommendationModel>) {
-        try {
-            if (list.isNotEmpty()) {
-                recommendationAdapter?.updateList(list)
-                Log.d(TAG, "Recommendation list updated: ${list.size} items")
-            } else {
-                Log.w(TAG, "Recommendation list is empty")
-                recommendationAdapter?.updateList(emptyList())
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in handleRecommendationListUpdate: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 로딩 상태 업데이트 처리
-     */
-    private fun handleLoadingStateUpdate(isLoading: Boolean) {
-        try {
-            // SwipeRefreshLayout에 로딩 상태 반영
-            if (!binding.swipeRefreshLayout.isRefreshing) {
-                binding.swipeRefreshLayout.isRefreshing = isLoading
-            }
-
-            Log.d(TAG, "Loading state updated: $isLoading")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in handleLoadingStateUpdate: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 에러 업데이트 처리
-     */
-    private fun handleErrorUpdate(error: String?) {
-        try {
-            if (error != null) {
-                Log.e(TAG, "Error occurred: $error")
-                // TODO: 사용자에게 에러 메시지 표시
-
-                // 에러 발생 시 새로고침 중단
-                binding.swipeRefreshLayout.isRefreshing = false
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in handleErrorUpdate: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 핫포스트 리스트 높이 업데이트
-     */
-    private fun updateHotPostListHeight(itemCount: Int) {
-        try {
-            val density = resources.displayMetrics.density
-            val itemHeight = (HOTPOST_ITEM_HEIGHT_DP * density).toInt()
-            val spacing = (10 * density).toInt()
-            val totalHeight = (itemCount * itemHeight) + ((itemCount - 1) * spacing)
-
-            binding.hotpostList.layoutParams = binding.hotpostList.layoutParams.apply {
-                height = totalHeight
-            }
-
-            Log.d(TAG, "HotPost list height updated: $totalHeight px for $itemCount items")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in updateHotPostListHeight: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 클릭 이벤트 처리 메서드들
-     */
-    private fun handlePartyButtonClick(model: PartyButtonModel) {
-        try {
+    private var partyButtonListAdapter : PartyButtonsAdapter? = null
+    private val partyButtonClickListener = object : IPartyButtonHolderClickListener<PartyButtonModel> {
+        override fun onClick(model: PartyButtonModel) {
             when (model.uid) {
                 "recruitment" -> {
-                    Log.d(TAG, "Party recruitment clicked")
                     // TODO: 파티 모집 화면으로 이동
                 }
                 "apply" -> {
-                    Log.d(TAG, "Party apply clicked")
                     // TODO: 파티 신청 화면으로 이동
                 }
-                else -> {
-                    Log.w(TAG, "Unknown party button clicked: ${model.uid}")
+            }
+        }
+    }
+    private fun setPartyButtonList(recyclerview : RecyclerView){
+        try{
+            if (partyButtonListAdapter == null) {
+                partyButtonListAdapter = PartyButtonsAdapter().apply {
+                    setOnClickListener(partyButtonClickListener)
                 }
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in handlePartyButtonClick: ${e.message}", e)
+
+            recyclerview.apply {
+                adapter = partyButtonListAdapter
+                layoutManager = LinearLayoutManager(
+                    context,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                ).apply {
+                    initialPrefetchItemCount = 2
+                    isItemPrefetchEnabled = true
+                }
+
+                setRecycledViewPool(sharedRecyclerViewPool)
+                setHasFixedSize(true)
+                setItemViewCacheSize(4)
+
+                // 스크롤 최적화
+                isNestedScrollingEnabled = false
+
+                // ItemDecoration
+                addItemDecoration(RecyclerItemGap(
+                    verticalSpace = 0,
+                    horizontalSpace = 10,
+                    includeEdge = false
+                ))
+            }
+
+            val mList = listOf<PartyButtonModel>(
+                PartyButtonModel(uid = "uid1", imgRes = R.drawable.flag, title = requireContext().getString(R.string.home_party_recruitment_title), description = requireContext().getString(R.string.home_party_recruitment_description)),
+                PartyButtonModel(uid = "uid2", imgRes = R.drawable.letter, title = requireContext().getString(R.string.home_party_apply_title), description = requireContext().getString(R.string.home_party_apply_description))
+            )
+
+            partyButtonListAdapter?.updateList(mList)
+        }catch (e:Exception){
+            Log.d("HomeFragment", "HomeFragment, setPartyButtonList, RecyclerView에 데이터 업데이트 완료")
         }
     }
 
-    private fun handleHotpostClick(model: PartyModel) {
+
+    private var hotpostListAdapter : HotpostAdapter? = null
+    private val hotpostClickListener = object : IHotpostHolderClickListener<PartyModel> {
+        override fun onClick(model: PartyModel) {
+            Log.e("mException", "HomeFragment, 핫포스트 클릭 : ${model.partyTitle}")
+        }
+    }
+    private fun setHotPostingList(recyclerview : RecyclerView){
+        try{
+            if (hotpostListAdapter == null) {
+                hotpostListAdapter = HotpostAdapter().apply {
+                    setOnClickListener(hotpostClickListener)
+                }
+            }
+
+            recyclerview.apply {
+                adapter = hotpostListAdapter
+                layoutManager = LinearLayoutManager(context).apply {
+                    initialPrefetchItemCount = 3
+                    isItemPrefetchEnabled = true
+                }
+
+                // ViewPool 최적화
+                setRecycledViewPool(sharedRecyclerViewPool)
+                setHasFixedSize(true)
+                setItemViewCacheSize(6)
+
+                // 스크롤 최적화
+                isNestedScrollingEnabled = true
+
+                // ItemDecoration
+                addItemDecoration(RecyclerItemGap(
+                    verticalSpace = 30,
+                    horizontalSpace = 0,
+                    includeEdge = false
+                ))
+            }
+        }catch (e:Exception){
+            Log.e("mException", "HomeFragment, setHotPostingList // Exception : ${e.localizedMessage}")
+        }
+    }
+
+    private var recommendationAdapter : RecommendationAdapter? = null
+    private val recommendationClickListener = object : IRecommendationHolderClickListener<RecommendationModel> {
+        override fun onClick(model: RecommendationModel) {
+            Log.e("mException", "HomeFragment, 추천지역 아이템 클릭 : ${model.title}")
+        }
+    }
+    private fun setRecommendationList(recyclerview: RecyclerView){
+        try{
+            if (recommendationAdapter == null) {
+                recommendationAdapter = RecommendationAdapter().apply {
+                    setOnClickListener(recommendationClickListener)
+                }
+            }
+
+            recyclerview.apply {
+                adapter = recommendationAdapter
+                layoutManager = LinearLayoutManager(
+                    context,
+                    LinearLayoutManager.HORIZONTAL,
+                    false
+                ).apply {
+                    initialPrefetchItemCount = 3
+                    isItemPrefetchEnabled = true
+                }
+
+                // ViewPool 최적화
+                setRecycledViewPool(sharedRecyclerViewPool)
+                setHasFixedSize(true)
+                setItemViewCacheSize(6)
+
+                // 스크롤 최적화
+                isNestedScrollingEnabled = true
+
+                // ItemDecoration
+                addItemDecoration(RecyclerItemGap(
+                    verticalSpace = 0,
+                    horizontalSpace = 30,
+                    includeEdge = false
+                ))
+            }
+        }catch (e:Exception){
+            Log.d("HomeFragment", "HomeFragment, setRecommendationList, RecyclerView에 데이터 업데이트 완료")
+        }
+    }
+
+    private fun setupSwipeRefresh() {
         try {
-            Log.d(TAG, "Hotpost clicked: ${model.partyTitle}")
-            // TODO: 파티 상세 화면으로 이동
+            binding.swipeRefreshLayout.apply {
+                // 색상 설정
+                setColorSchemeResources(
+                    R.color.colorSecondary50,
+                    R.color.colorSecondary100,
+                    R.color.colorSecondary200
+                )
+
+                // 배경색 설정
+                setProgressBackgroundColorSchemeResource(R.color.white)
+
+                // 크기 설정 (기본, 큰 크기)
+                setSize(androidx.swiperefreshlayout.widget.SwipeRefreshLayout.DEFAULT)
+
+                // 드래그 거리 설정
+                setDistanceToTriggerSync(150) // 새로고침 트리거 거리
+                setSlingshotDistance(200) // 최대 드래그 거리
+
+                // 새로고침 리스너
+                setOnRefreshListener {
+                    refreshList()
+                }
+            }
+
+            Log.d(TAG, "SwipeRefreshLayout setup completed")
         } catch (e: Exception) {
-            Log.e(TAG, "Error in handleHotpostClick: ${e.message}", e)
+            Log.e(TAG, "Error in setupSwipeRefresh: ${e.message}", e)
         }
     }
 
-    private fun handleRecommendationClick(model: RecommendationModel) {
-        try {
-            Log.d(TAG, "Recommendation clicked: ${model.title}")
-            // TODO: 추천 여행지 상세 화면으로 이동
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in handleRecommendationClick: ${e.message}", e)
+    // hotspot, recoomend list 새로고침
+    private var isRefreshing = false  // 새로고침 상태 관리
+    private fun refreshList(){
+        if (isRefreshing) {
+            Log.e("mException", "HomeFragment, refreshList // 이미 리스트 새로고침하여 새로고침 매소드 실행무시하겠음.")
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                isRefreshing = true
+                val startTime = System.currentTimeMillis()
+
+                // 강제 새로고침으로 데이터 로드
+                val hotPostJob = launch {
+                    partyVM.refreshHotPostList(forceRefresh = true)
+                }
+                val recommendationJob = launch {
+                    partyVM.refreshRecommendations(forceRefresh = true)
+                }
+
+                // 모든 작업 완료 대기
+                hotPostJob.join()
+                recommendationJob.join()
+
+
+            } catch (e: Exception) {
+                Log.e(TAG, "Error during refresh: ${e.message}", e)
+            } finally {
+                isRefreshing = false
+                // UI 스레드에서 새로고침 상태 해제
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
         }
     }
 
-    private fun goToNotificationActivity() {
-        try {
-            Log.d(TAG, "Going to notification activity")
-            // TODO: 알림 화면으로 이동 구현
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in goToNotificationActivity: ${e.message}", e)
-        }
-    }
-
-    private fun searchTravelSpot() {
-        try {
-            Log.d(TAG, "Search travel spot clicked")
-            // TODO: 검색 화면으로 이동 구현
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in searchTravelSpot: ${e.message}", e)
-        }
-    }
-
-    /**
-     * 메모리 정리
-     */
     override fun onDestroyView() {
         try {
             // RecyclerView adapter 해제
@@ -493,33 +374,28 @@ class HomeFragment : Fragment() {
             binding.hotpostList.adapter = null
             binding.recommendationList.adapter = null
 
-            // Adapter 참조 해제
-            partyButtonsAdapter = null
-            hotpostAdapter = null
+            // Adapter 참조 해제 - 메모리 정리
+            partyButtonListAdapter = null
+            hotpostListAdapter = null
             recommendationAdapter = null
 
-            Log.d(TAG, "Memory cleanup completed")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in onDestroyView: ${e.message}", e)
-        } finally {
             // ViewBinding 정리
             _binding = null
+
+        } catch (e: Exception) {
+            Log.e("mException", "HomeFragment, onDestroyView // Exception: ${e.localizedMessage}")
+        } finally {
             super.onDestroyView()
         }
     }
 
-    /**
-     * 라이프사이클 관리
-     */
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "Fragment resumed")
-        // 필요시 데이터 새로고침
-    }
-
     override fun onPause() {
         super.onPause()
-        Log.d(TAG, "Fragment paused")
-        // 필요시 로딩 중단
+        // 필요시 데이터 로딩 일시정지
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 필요시 데이터 새로고침
     }
 }
