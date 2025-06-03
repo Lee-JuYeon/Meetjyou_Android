@@ -73,13 +73,21 @@
                 android:textStyle="bold" />
 
             <!-- Hot Post List -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/hotpostList"
+            <!-- Hot Post List with Pull-to-Refresh -->
+            <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+                android:id="@+id/swipeRefreshLayout"
                 android:layout_width="match_parent"
-                android:layout_height="250dp"
-                android:layout_marginTop="20dp"
-                android:orientation="vertical"
-                android:nestedScrollingEnabled="true" />
+                android:layout_height="300dp"
+                android:layout_marginTop="20dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/hotpostList"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:nestedScrollingEnabled="true" />
+
+            </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
             <!-- Recommendation Title -->
             <TextView
