@@ -32,7 +32,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "11"  // "17" → "11"
     }
     buildFeatures {
         viewBinding = true
@@ -41,11 +41,11 @@ android {
     }
 }
 
-// KSP 설정
+// KSP 설정 간소화
 ksp {
-    arg("databinding.incremental", "true")
-    arg("databinding.enableV2", "true")
+    arg("incremental", "true")
 }
+
 
 dependencies {
 
@@ -69,4 +69,5 @@ dependencies {
     //Glide
     implementation("com.github.bumptech.glide:glide:4.15.1")
     ksp("com.github.bumptech.glide:ksp:4.15.1")
+
 }
