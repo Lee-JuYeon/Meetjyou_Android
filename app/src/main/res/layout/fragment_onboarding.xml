@@ -1,62 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    tools:context=".ui.screen.onboarding.OnBoardingActivity">
 
-    <data>
-        <variable
-            name="title"
-            type="String" />
-        <variable
-            name="description"
-            type="String" />
-        <variable
-            name="imageRes"
-            type="int" />
-    </data>
+    <!-- 온보딩 이미지 -->
+    <ImageView
+        android:id="@+id/iv_onboarding"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:contentDescription="이미지"
+        android:layout_gravity="center"/>
 
-    <LinearLayout
+    <!-- 제목 -->
+    <TextView
+        android:id="@+id/tv_title"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
         android:gravity="center"
-        android:padding="24dp"
-        tools:context=".ui.screen.onboarding.OnBoardingActivity">
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        tools:text="환영합니다!" />
 
-        <!-- 온보딩 이미지 -->
-        <ImageView
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:contentDescription="이미지"
-            app:imageRes="@{imageRes}"
-            android:layout_gravity="center"/>
+    <!-- 설명 -->
+    <TextView
+        android:id="@+id/tv_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:maxLines="2"
+        tools:text="MeetJyou와 함께 새로운 만남을 시작하세요" />
 
-        <!-- 제목 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
-            android:gravity="center"
-            android:text="@{title}"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:maxLines="1"
-            tools:text="환영합니다!" />
-
-        <!-- 설명 -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:lineSpacingExtra="4dp"
-            android:text="@{description}"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            android:maxLines="2"
-            tools:text="MeetJyou와 함께 새로운 만남을 시작하세요" />
-
-    </LinearLayout>
-</layout>
-
+</LinearLayout>

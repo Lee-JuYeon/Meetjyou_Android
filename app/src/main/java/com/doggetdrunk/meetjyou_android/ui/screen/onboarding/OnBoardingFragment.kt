@@ -6,8 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.doggetdrunk.meetjyou_android.databinding.FragmentOnboardingBinding
+import com.doggetdrunk.meetjyou_android.binding.setImageRes
 
-class OnBoardingFragment : Fragment(){
+class OnBoardingFragment : Fragment() {
     private var _binding: FragmentOnboardingBinding? = null
     private val binding
         get() = _binding!!
@@ -30,9 +31,6 @@ class OnBoardingFragment : Fragment(){
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentOnboardingBinding.inflate(inflater, container, false)
-        _binding?.run {
-            lifecycleOwner = this@OnBoardingFragment
-        }
         return binding.root
     }
 
@@ -40,10 +38,13 @@ class OnBoardingFragment : Fragment(){
         super.onViewCreated(view, savedInstanceState)
 
         arguments?.let { args ->
+            // 이미지 설정
+            val imageRes = args.getInt(ARG_IMAGE_RES)
+            binding.ivOnboarding.setImageRes(imageRes)
 
-            binding.title = args.getString(ARG_TITLE)
-            binding.description = args.getString(ARG_DESCRIPTION)
-            binding.imageRes = args.getInt(ARG_IMAGE_RES)
+            // 텍스트 설정
+            binding.tvTitle.text = args.getString(ARG_TITLE)
+            binding.tvDescription.text = args.getString(ARG_DESCRIPTION)
         }
     }
 
@@ -52,4 +53,3 @@ class OnBoardingFragment : Fragment(){
         _binding = null
     }
 }
-

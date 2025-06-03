@@ -28,23 +28,21 @@ android {
         }
     }
 
-    // JVM 타겟을 17로 통일
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "17"  // "11" → "17"로 변경
+        jvmTarget = "17"
     }
 
     buildFeatures {
         viewBinding = true
-        dataBinding = true
+        dataBinding = false  // DataBinding 완전 비활성화
         buildConfig = true
     }
 }
 
-// KSP 설정 간소화
 ksp {
     arg("incremental", "true")
 }
@@ -59,15 +57,15 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
 
-    // bottom navigation
+    // Navigation
     implementation("androidx.navigation:navigation-ui-ktx:2.8.4")
     implementation("androidx.navigation:navigation-fragment-ktx:2.8.4")
     implementation("androidx.navigation:navigation-runtime-ktx:2.8.4")
 
-    // tablayout
+    // ViewPager2
     implementation("androidx.viewpager2:viewpager2:1.1.0")
 
-    //Glide
+    // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     ksp("com.github.bumptech.glide:ksp:4.16.0")
 }

@@ -8,9 +8,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.doggetdrunk.meetjyou_android.MainActivity
 import com.doggetdrunk.meetjyou_android.databinding.FragmentOnboardingLoginBinding
-import com.doggetdrunk.meetjyou_android.ui.screen.main.home.HomeFragment
+import com.doggetdrunk.meetjyou_android.binding.setImageRes
 
-class OnBoardingLoginFragment : Fragment(){
+class OnBoardingLoginFragment : Fragment() {
     private var _binding: FragmentOnboardingLoginBinding? = null
     private val binding
         get() = _binding!!
@@ -31,9 +31,6 @@ class OnBoardingLoginFragment : Fragment(){
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentOnboardingLoginBinding.inflate(inflater, container, false)
-        _binding?.run {
-            lifecycleOwner = this@OnBoardingLoginFragment
-        }
         return binding.root
     }
 
@@ -41,8 +38,12 @@ class OnBoardingLoginFragment : Fragment(){
         super.onViewCreated(view, savedInstanceState)
 
         arguments?.let { args ->
-            binding.description = args.getString(ARG_DESCRIPTION)
-            binding.imageRes = args.getInt(ARG_IMAGE_RES)
+            // 이미지 설정
+            val imageRes = args.getInt(ARG_IMAGE_RES)
+            binding.ivOnboarding.setImageRes(imageRes)
+
+            // 텍스트 설정
+            binding.tvTitle.text = args.getString(ARG_DESCRIPTION)
         }
 
         binding.applelogin.setOnClickListener {

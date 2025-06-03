@@ -6,11 +6,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.doggetdrunk.meetjyou_android.databinding.HolderPartybuttonBinding
+import com.doggetdrunk.meetjyou_android.binding.setImageRes
 
 class PartyButtonsViewHolder(
     private val binding: HolderPartybuttonBinding
 ) : RecyclerView.ViewHolder(binding.root) {
-
 
     private val Int.toDp: Int
         get() = TypedValue.applyDimension(
@@ -26,19 +26,26 @@ class PartyButtonsViewHolder(
             Resources.getSystem().displayMetrics
         )
 
-
     fun bind(
         model: PartyButtonModel,
         clickListener: IPartyButtonHolderClickListener<PartyButtonModel>,
-        itemCount: Int // <-- 아이템 총 개수를 전달받음
+        itemCount: Int
     ) {
         binding.apply {
-            this.model = model
-            this.listener = clickListener
-            executePendingBindings()
+            // 이미지 설정
+            image.setImageRes(model.imgRes)
+
+            // 텍스트 설정
+            title.text = model.title
+            description.text = model.description
+
+            // 클릭 리스너
+            root.setOnClickListener {
+                clickListener.onClick(model)
+            }
         }
 
-        // 화면 높이를 기준으로 균등 분할
+        // 화면 너비를 기준으로 균등 분할
         val screenWidth = binding.root.resources.displayMetrics.widthPixels
         val itemWidth = screenWidth / itemCount
         binding.root.layoutParams = binding.root.layoutParams.apply {

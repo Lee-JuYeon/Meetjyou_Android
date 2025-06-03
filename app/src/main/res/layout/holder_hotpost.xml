@@ -1,59 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="80dp">
 
-    <data>
-        <import type="com.doggetdrunk.meetjyou_android.model.PartyModel"/>
-        <import type="com.doggetdrunk.meetjyou_android.ui.screen.main.home.hotpost.IHotpostHolderClickListener"/>
+    <ImageView
+        android:layout_width="80dp"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/image"
+        android:scaleType="centerCrop" />
 
-        <variable
-            name="model"
-            type="com.doggetdrunk.meetjyou_android.model.PartyModel" />
-        <variable
-            name="listener"
-            type="com.doggetdrunk.meetjyou_android.ui.screen.main.home.hotpost.IHotpostHolderClickListener" />
-    </data>
-
-
-    <RelativeLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:onClick="@{() -> listener.onClick(model)}">
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@id/image"
+        android:layout_marginStart="10dp"
+        android:id="@+id/title"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:maxLines="1"
+        tools:text="제주도 여행 맴버 모집!" />
 
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="match_parent"
-            android:layout_centerVertical="true"
-            android:layout_alignParentStart="true"
-            android:id="@+id/image"
-            app:imageUrl="@{model.imageURL}"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_toEndOf="@+id/image"
+        android:layout_marginStart="10dp"
+        android:id="@+id/viewCount"
+        android:textSize="14sp"
+        android:textStyle="normal"
+        android:textColor="@color/gray300"
+        tools:text="조회 15" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_toEndOf="@id/image"
-            android:layout_marginStart="10dp"
-            android:id="@+id/title"
-            android:text="@{model.partyTitle}"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:maxLines="1"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/title"
-            android:layout_toEndOf="@+id/image"
-            android:layout_marginStart="10dp"
-            android:id="@+id/viewCount"
-            android:text="@{@string/view_count_format(model.viewerCountToText)}"
-            android:textSize="14sp"
-            android:textStyle="normal"
-            android:textColor="@color/gray300"/>
-
-    </RelativeLayout>
-</layout>
+</RelativeLayout>
