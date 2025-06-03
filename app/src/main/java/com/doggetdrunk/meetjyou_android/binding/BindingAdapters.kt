@@ -8,18 +8,27 @@ import com.doggetdrunk.meetjyou_android.R
 
 object BindingAdapters {
 
+    /**
+     * DataBinding에서 사용할 커스텀 BindingAdapter들
+     * KSP 호환성을 위해 object 대신 companion object 또는 top-level 함수 사용
+     */
 
+    /**
+     * ImageView에 리소스 ID로 이미지 설정
+     * 사용법: app:imageRes="@{viewModel.imageResId}"
+     */
     @BindingAdapter("imageRes")
-    @JvmStatic
-    fun setImageResource2(imageView: ImageView, resourceId: Int) {
+    fun setImageResource(imageView: ImageView, resourceId: Int) {
         if (resourceId != 0) {
             imageView.setImageResource(resourceId)
         }
     }
 
-
+    /**
+     * ImageView에 URL로 이미지 로딩 (Glide 사용)
+     * 사용법: app:imageUrl="@{model.imageUrl}"
+     */
     @BindingAdapter("imageUrl")
-    @JvmStatic
     fun loadImageFromUrl(imageView: ImageView, url: String?) {
         if (!url.isNullOrEmpty()) {
             Glide.with(imageView.context)
