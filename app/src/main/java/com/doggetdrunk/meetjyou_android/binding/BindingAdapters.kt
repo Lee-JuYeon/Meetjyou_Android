@@ -10,7 +10,7 @@ object BindingAdapters {
 
     /**
      * DataBinding에서 사용할 커스텀 BindingAdapter들
-     * KSP 호환성을 위해 object 대신 companion object 또는 top-level 함수 사용
+     * Top-level 함수로 정의하여 KSP 호환성 확보
      */
 
     /**
@@ -20,7 +20,14 @@ object BindingAdapters {
     @BindingAdapter("imageRes")
     fun setImageResource(imageView: ImageView, resourceId: Int) {
         if (resourceId != 0) {
-            imageView.setImageResource(resourceId)
+            try {
+                imageView.setImageResource(resourceId)
+            } catch (e: Exception) {
+                // 리소스를 찾을 수 없는 경우 기본 이미지 설정
+                imageView.setImageResource(R.drawable.ic_launcher_background)
+            }
+        } else {
+            imageView.setImageResource(R.drawable.ic_launcher_background)
         }
     }
 
@@ -30,14 +37,19 @@ object BindingAdapters {
      */
     @BindingAdapter("imageUrl")
     fun loadImageFromUrl(imageView: ImageView, url: String?) {
-        if (!url.isNullOrEmpty()) {
-            Glide.with(imageView.context)
-                .load(url)
-                .placeholder(R.drawable.ic_launcher_background)
-                .error(R.drawable.ic_launcher_background)
-                .centerCrop()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(imageView)
+        if (!url.isNullOrEmpty() && url.isNotBlank()) {
+            try {
+                Glide.with(imageView.context)
+                    .load(url)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .centerCrop()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(imageView)
+            } catch (e: Exception) {
+                // Glide 로딩 실패 시 기본 이미지 설정
+                imageView.setImageResource(R.drawable.ic_launcher_background)
+            }
         } else {
             imageView.setImageResource(R.drawable.ic_launcher_background)
         }
