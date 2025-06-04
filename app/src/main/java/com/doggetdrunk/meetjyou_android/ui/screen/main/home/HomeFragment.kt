@@ -1,5 +1,6 @@
 package com.doggetdrunk.meetjyou_android.ui.screen.main.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.NotificationActivity
 
 class HomeFragment : Fragment() {
 
@@ -69,8 +71,7 @@ class HomeFragment : Fragment() {
             setPartyButtonList(binding.buttonList)
             setHotPostingList(binding.hotpostList)
             setRecommendationList(binding.recommendationList)
-
-            Log.d("HomeFragment", "UI initialization completed")
+            goNotificationActivity()
         } catch (e: Exception) {
             Log.e("mException", "HomeFragment, initializedUI // Exception :${e.localizedMessage}")
         }
@@ -147,7 +148,14 @@ class HomeFragment : Fragment() {
     }
 
     private fun goNotificationActivity(){
-
+        try {
+            binding.notificationBtn.setOnClickListener {
+                val intent = Intent(requireContext(), NotificationActivity::class.java)
+                startActivity(intent)
+            }
+        } catch (e: Exception) {
+            Log.e("mException", "HomeFragment, goNotificationActivity // Exception: ${e.localizedMessage}")
+        }
     }
 
     private fun searchTravelSpot(){
