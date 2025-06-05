@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.apply.ApplyRepository
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.apply.recyclerview.ApplyModel
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentModel
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.recyclerview.NotifyModel
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.NotifyRepository
@@ -37,7 +38,9 @@ class NotifyVM : ViewModel() {
 
     private val _recruitmentList = MutableStateFlow<List<RecruitmentModel>>(emptyList())
     val recruitmentList: StateFlow<List<RecruitmentModel>> = _recruitmentList.asStateFlow()
-    
+
+    private val _applyList = MutableStateFlow<List<ApplyModel>>(emptyList())
+    val applyList: StateFlow<List<ApplyModel>> = _applyList.asStateFlow()
 
     // 캐시 시스템
     private val dataCache = ConcurrentHashMap<String, CacheEntry<*>>()
@@ -49,6 +52,41 @@ class NotifyVM : ViewModel() {
     ) {
         private val CACHE_EXPIRY_MS = 5 * 60 * 1000L // 5분 캐시
         fun isExpired(): Boolean = System.currentTimeMillis() - timestamp > CACHE_EXPIRY_MS
+    }
+
+    fun loadApplyList() {
+        viewModelScope.launch {
+            loadingMutex.withLock {
+                if (_isLoading.value) return@withLock
+
+                val cachedData = getCachedData<List<ApplyModel>>("all_applies")
+                if (cachedData != null) {
+                    Log.d(TAG, "Using cached all applies data")
+                    _applyList.value = cachedData
+                    return@withLock
+                }
+
+                try {
+                    _isLoading.value = true
+                    Log.d(TAG, "Loading all applies from repository...")
+
+                    val applies = loadWithRetry {
+                        // DummyPack에서 직접 가져오기 (실제로는 applyRepository.getApplyList() 같은 메소드 필요)
+                        com.doggetdrunk.meetjyou_android.DummyPack().applyList
+                    }
+
+                    Log.d(TAG, "All applies loaded: ${applies.size} items")
+                    cacheData("all_applies", applies)
+                    _applyList.value = applies
+
+                } catch (e: Exception) {
+                    Log.e(EXCEPTION, "Failed to load all applies", e)
+                    _error.value = "신청 내역을 불러오는데 실패했습니다: ${e.message}"
+                } finally {
+                    _isLoading.value = false
+                }
+            }
+        }
     }
 
     fun loadRecruitmentList(partyUID : String) {
@@ -68,7 +106,7 @@ class NotifyVM : ViewModel() {
                     Log.d(TAG, "Loading all recruitments from repository...")
 
                     val recruitments = loadWithRetry {
-                        notifyRepository.getRecruitmentList(partyUID = partyUID)
+                        recruitmentRepository.getRecruitmentList(partyUID = partyUID)
                     }
 
                     Log.d(TAG, "All recruitments loaded: ${recruitments.size} items")
@@ -77,7 +115,7 @@ class NotifyVM : ViewModel() {
 
                 } catch (e: Exception) {
                     Log.e(EXCEPTION, "Failed to load all recruitments", e)
-                    _error.value = "알림을 불러오는데 실패했습니다: ${e.message}"
+                    _error.value = "모집 현황을 불러오는데 실패했습니다: ${e.message}"
                 } finally {
                     _isLoading.value = false
                 }
@@ -139,10 +177,39 @@ class NotifyVM : ViewModel() {
     }
 
     /**
-     * 로컬에서 알림 제거
+     * 모집 승인/거절 처리
+     */
+    fun handleRecruitmentAction(model: RecruitmentModel, isAccept: Boolean) {
+        viewModelScope.launch {
+            try {
+                // 실제로는 repository를 통해 서버에 요청
+                if (isAccept) {
+                    Log.d(TAG, "Recruitment accepted: ${model.uid}")
+                    // recruitmentRepository.acceptRecruitment(model.uid)
+                } else {
+                    Log.d(TAG, "Recruitment denied: ${model.uid}")
+                    // recruitmentRepository.deneyRecruitment(model.uid)
+                }
+
+                // 로컬 리스트에서 제거
+                removeLocalRecruitment(model.uid)
+
+            } catch (e: Exception) {
+                Log.e(EXCEPTION, "Failed to handle recruitment action", e)
+                _error.value = "요청 처리에 실패했습니다"
+            }
+        }
+    }
+
+    /**
+     * 로컬에서 항목 제거
      */
     private fun removeLocalNotification(notificationId: String) {
         _notificationList.value = _notificationList.value.filter { it.uid != notificationId }
+    }
+
+    private fun removeLocalRecruitment(recruitmentId: String) {
+        _recruitmentList.value = _recruitmentList.value.filter { it.uid != recruitmentId }
     }
 
     /**
@@ -188,6 +255,8 @@ class NotifyVM : ViewModel() {
     fun refresh() {
         clearCache()
         loadNotificationList()
+        loadRecruitmentList("") // 실제로는 적절한 partyUID 전달
+        loadApplyList()
     }
 
     /**

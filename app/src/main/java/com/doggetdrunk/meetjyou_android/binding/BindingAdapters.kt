@@ -3,6 +3,7 @@ package com.doggetdrunk.meetjyou_android.binding
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.doggetdrunk.meetjyou_android.R
 
 /**
@@ -35,6 +36,25 @@ fun ImageView.loadImageFromUrl(url: String?) {
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .centerCrop()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(this)
+        } catch (e: Exception) {
+            setImageResource(R.drawable.ic_launcher_background)
+        }
+    } else {
+        setImageResource(R.drawable.ic_launcher_background)
+    }
+}
+
+fun ImageView.loadSelfie(url: String?) {
+    if (!url.isNullOrEmpty() && url.isNotBlank()) {
+        try {
+            Glide.with(context)
+                .load(url)
+                .placeholder(R.drawable.ic_launcher_background)
+                .error(R.drawable.ic_launcher_background)
+                .centerCrop()
+                .transform(CircleCrop()) // 원형으로 자르기
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(this)
         } catch (e: Exception) {

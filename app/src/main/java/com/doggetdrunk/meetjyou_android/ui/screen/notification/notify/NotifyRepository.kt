@@ -34,18 +34,4 @@ class NotifyRepository() {
         }
     }
 
-    // 내 파티에 가입신청한 '모집 관리' 리스트
-    suspend fun getRecruitmentList(partyUID : String) : List<RecruitmentModel>{
-        // party uid를 비교
-        return try {
-            delay(300)
-            DummyPack().dummyRecruitmentList
-        }catch (e: Exception) {
-            Log.e("mException", "NotificationRepository, getRecruitmentList // Exception : ${e.localizedMessage}")
-            listOf()
-        }
-
-    }
-
-    // 내가 파티 신청한 '신청 내역' 리스트
 }
