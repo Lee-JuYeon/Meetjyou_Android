@@ -5,19 +5,21 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.navigation.findNavController
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.doggetdrunk.meetjyou_android.R
 import com.doggetdrunk.meetjyou_android.databinding.ActivityNotificationBinding
 import com.doggetdrunk.meetjyou_android.ui.custom.base.BaseFragmentAdapter
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotificationNotifyFragment
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotificationApplyStatusFragment
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotificationRecruitmentStatusFragment
+import com.doggetdrunk.meetjyou_android.vm.NotifyVM
+import com.doggetdrunk.meetjyou_android.vm.PartyVM
 
 class NotificationActivity : AppCompatActivity() {
 
@@ -31,23 +33,24 @@ class NotificationActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
+        setVM()
         setTabLayoutWithViewPager2(binding.tabLayout, binding.viewPager)
 
     }
 
-    private var activityFragment : NotificationActivityFragment? = null
+    private var notifyFragment : NotificationNotifyFragment? = null
     private var recruitmentStatusFragment : NotificationRecruitmentStatusFragment? = null
     private var applyStatusFragment : NotificationApplyStatusFragment? = null
     private fun setTabLayoutWithViewPager2(tabLayout: TabLayout, viewPager2: ViewPager2){
         try{
-            activityFragment = NotificationActivityFragment()
+            notifyFragment = NotificationNotifyFragment()
             recruitmentStatusFragment = NotificationRecruitmentStatusFragment()
             applyStatusFragment = NotificationApplyStatusFragment()
             viewPager2.let {
                 var viewpagerAdapter =  object : BaseFragmentAdapter.Adapter(this){
                     override fun setFragmentList(): List<Fragment> {
                         return listOf<Fragment>(
-                            activityFragment ?: NotificationActivityFragment(),
+                            notifyFragment ?: NotificationNotifyFragment(),
                             recruitmentStatusFragment ?: NotificationRecruitmentStatusFragment(),
                             applyStatusFragment ?: NotificationApplyStatusFragment()
                         )
@@ -139,6 +142,15 @@ class NotificationActivity : AppCompatActivity() {
             }
         }catch (e:Exception){
             Log.e("mException", "NotificationActivity, setTabLayoutWithViewPager2 // Exception : ${e.localizedMessage}")
+        }
+    }
+
+    private lateinit var notifyVM : NotifyVM
+    private fun setVM(){
+        try{
+            notifyVM = ViewModelProvider(this@NotificationActivity)[NotifyVM::class.java]
+        }catch (e:Exception){
+            Log.e("mException", "MainActivity, setVM // Exception : ${e.localizedMessage}")
         }
     }
 }

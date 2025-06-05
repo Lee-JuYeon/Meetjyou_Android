@@ -15,6 +15,9 @@
     <string name="bottom_navi_travel">여행</string>
     <string name="bottom_navi_mypage">마이페이지</string>
 
+    <string name="button_denied">거절</string>
+    <string name="button_accept">수락</string>
+
     <string name="view_count_format">조회 %s</string>
 
     <string name="home_search">찾고 싶은 여행지나 키워드를 입력하세요</string>

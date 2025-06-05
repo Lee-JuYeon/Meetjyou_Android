@@ -6,14 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.doggetdrunk.meetjyou_android.model.PartyModel
 import com.doggetdrunk.meetjyou_android.repository.PartyRepository
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.RecommendationModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 
-class PartyViewModel(
+class PartyVM(
     private val partyRepository: PartyRepository = PartyRepository()
 ) : ViewModel() {
 

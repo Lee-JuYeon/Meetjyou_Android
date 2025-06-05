@@ -22,7 +22,7 @@ import com.doggetdrunk.meetjyou_android.ui.screen.main.home.partybutton.PartyBut
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.IRecommendationHolderClickListener
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.RecommendationAdapter
 import com.doggetdrunk.meetjyou_android.ui.screen.main.home.recommendation.RecommendationModel
-import com.doggetdrunk.meetjyou_android.vm.PartyViewModel
+import com.doggetdrunk.meetjyou_android.vm.PartyVM
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.lifecycle.Lifecycle
@@ -77,7 +77,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private val partyVM : PartyViewModel by activityViewModels()
+    private val partyVM : PartyVM by activityViewModels()
     // VM observing FLow로 성능 안정화
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {

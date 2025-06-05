@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.doggetdrunk.meetjyou_android.databinding.ActivityMainBinding
-import com.doggetdrunk.meetjyou_android.vm.PartyViewModel
+import com.doggetdrunk.meetjyou_android.vm.PartyVM
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,10 +33,10 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigation.setupWithNavController(navController)
     }
 
-    private lateinit var partyVM : PartyViewModel
+    private lateinit var partyVM : PartyVM
     private fun setVM(){
         try{
-            partyVM = ViewModelProvider(this@MainActivity)[PartyViewModel::class.java]
+            partyVM = ViewModelProvider(this@MainActivity)[PartyVM::class.java]
         }catch (e:Exception){
             Log.e("mException", "MainActivity, setVM // Exception : ${e.localizedMessage}")
         }

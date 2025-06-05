@@ -7,12 +7,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.doggetdrunk.meetjyou_android.databinding.FragmentLoungeBinding
-import com.doggetdrunk.meetjyou_android.vm.PartyViewModel
+import com.doggetdrunk.meetjyou_android.vm.PartyVM
 
 class LoungeFragment : Fragment() {
     private var _binding: FragmentLoungeBinding? = null
     private val binding get() = _binding!!
-    private val partyVM: PartyViewModel by activityViewModels()
+    private val partyVM: PartyVM by activityViewModels()
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentLoungeBinding.inflate(inflater, container, false)

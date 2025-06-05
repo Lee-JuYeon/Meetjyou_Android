@@ -1,22 +1,22 @@
-package com.doggetdrunk.meetjyou_android.ui.screen.notification
+package com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
-import com.doggetdrunk.meetjyou_android.databinding.FragmentNotificationRecruitmentStatusBinding
+import androidx.fragment.app.Fragment
+import com.doggetdrunk.meetjyou_android.databinding.FragmentNotificationApplyStatusBinding
 
-class NotificationRecruitmentStatusFragment : Fragment() {
+class NotificationApplyStatusFragment : Fragment() {
 
-    private var _binding: FragmentNotificationRecruitmentStatusBinding? = null
+    private var _binding: FragmentNotificationApplyStatusBinding? = null
+
 
     private val binding
         get() = _binding!!
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        _binding = FragmentNotificationRecruitmentStatusBinding.inflate(inflater, container, false)
+        _binding = FragmentNotificationApplyStatusBinding.inflate(inflater, container, false)
         return binding.root
     }
 
