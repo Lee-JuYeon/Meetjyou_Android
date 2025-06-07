@@ -92,7 +92,7 @@ class NotificationRecruitmentStatusFragment : Fragment() {
                 // CustomBottomSheet 생성 및 표시
                 // CustomBottomSheetFragment 생성 및 설정
                 val bottomSheetFragment = CustomBottomSheet.newInstance()
-                    .setTitle(model.userName)
+                    .setTitle("사용자의 프로필")
                     .setDraggable(true)
                     .setExpandable(true)
                     .setContentFragment(profileFragment)

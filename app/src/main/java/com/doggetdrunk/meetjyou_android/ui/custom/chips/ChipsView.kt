@@ -34,8 +34,7 @@ class ChipsView @JvmOverloads constructor(
     }
 
     private fun setupPadding() {
-        val padding = dpToPx(16)
-        setPadding(padding, dpToPx(8), padding, dpToPx(8))
+        setPadding(dpToPx(0), dpToPx(8), dpToPx(16), dpToPx(8))
     }
 
     private fun dpToPx(dp: Int): Int {
@@ -100,9 +99,7 @@ class ChipsView @JvmOverloads constructor(
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT
             ).apply {
-                if (currentRow?.childCount ?: 0 > 0) {
-                    leftMargin = chipHorizontalSpacing
-                }
+                rightMargin = chipHorizontalSpacing
             }
 
             chipView.layoutParams = chipLayoutParams
