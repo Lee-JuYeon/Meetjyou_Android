@@ -80,20 +80,29 @@ class NotificationRecruitmentStatusFragment : Fragment() {
 
     private var recruitmentAdapter: RecruitmentAdapter? = null
     private var sheet_userinfo : NotifyProfileFragment? = null
+    private var currentBottomSheet: CustomBottomSheet? = null
     private val recruitmentClickListener = object : IRecruitmentHolderClickListener<RecruitmentModel> {
         override fun onHolderClick(model: RecruitmentModel) {
-            if (sheet_userinfo == null)  sheet_userinfo = NotifyProfileFragment()
+            try {
+                // NotifyProfileFragment 생성 및 데이터 설정
+                val profileFragment = NotifyProfileFragment().apply {
+                    setModel(model)
+                }
 
-            sheet_userinfo?.apply {
-                setModel(model)
+                // CustomBottomSheet 생성 및 표시
+                // CustomBottomSheetFragment 생성 및 설정
+                val bottomSheetFragment = CustomBottomSheet.newInstance()
+                    .setTitle(model.userName)
+                    .setDraggable(true)
+                    .setExpandable(true)
+                    .setContentFragment(profileFragment)
+
+                // 표시 (parentFragmentManager 사용)
+                bottomSheetFragment.show(parentFragmentManager)
+            } catch (e: Exception) {
+                Log.e("mException", "NotificationRecruitmentStatusFragment / BottomSheet 표시 중 에러 발생: ${e.message}", e)
+                // 에러 발생 시 앱이 크래시되지 않도록 방지
             }
-
-            CustomBottomSheet.create(requireContext())
-                .setTitle(model.userName)
-                .setDraggable(true)
-                .setExpandable(true)
-                .setContentFragment(sheet_userinfo!!)
-                .show()
 
         }
 
@@ -168,10 +177,21 @@ class NotificationRecruitmentStatusFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // RecyclerView adapter 해제
-        binding.recyclerview.adapter = null
-        recruitmentAdapter = null
-        _binding = null
+        try {
+            // BottomSheet 정리
+            currentBottomSheet = null
+
+            // RecyclerView adapter 해제
+            binding.recyclerview.adapter = null
+            recruitmentAdapter = null
+            _binding = null
+
+        } catch (e: Exception) {
+            Log.e("mException", "NotificationRecruitmentStatusFragment, onDestroyView // Exception : ${e.localizedMessage}")
+        } finally {
+            _binding = null
+            super.onDestroyView()
+        }
     }
 
 }
