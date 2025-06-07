@@ -20,6 +20,9 @@
 
     <string name="view_count_format">조회 %s</string>
 
+    <string name="snackbar_recruitment_accept">동행 신청이 수락되었습니다.</string>
+    <string name="snackbar_recruitment_denied">동행 신청이 거절되었습니다.</string>
+
     <string name="home_search">찾고 싶은 여행지나 키워드를 입력하세요</string>
     <string name="home_party_recruitment_title">파티 모집</string>
     <string name="home_party_recruitment_description">함께 떠날 동행자를\n모아보세요!</string>

@@ -5,6 +5,7 @@ data class RecruitmentModel(
     val userName : String,
     val userSelfieURL : String?,
     val userUID : String,
+    val userDescription : String? = null,
     val content : String,
     val partyUID : String
 ) {

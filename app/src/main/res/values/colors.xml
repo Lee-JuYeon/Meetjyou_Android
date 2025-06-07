@@ -5,7 +5,7 @@
 
     <!-- Primary -->
     <color name="colorPrimary50">#FFDB60</color>
-    <color name="colorPrimary100">#E82783</color>
+    <color name="colorPrimary100">#FFF1F1</color>
     <color name="colorPrimary200">#E82773</color>
     <color name="colorPrimary500">#E8272B</color>
 
@@ -31,4 +31,8 @@
     <!-- Error/Warning -->
     <color name="colorWarning">#F44336</color>
 
+    <color name="snackbar_denied_background">#FFF1F1</color>
+    <color name="snackbar_denied_icon">#BE5554</color>
+    <color name="snackbar_accept_background">#F4F7FB</color>
+    <color name="snackbar_accept_icon">#B5BCE2</color>
 </resources>

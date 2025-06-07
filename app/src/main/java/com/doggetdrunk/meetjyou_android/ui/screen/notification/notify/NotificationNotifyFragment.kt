@@ -1,4 +1,4 @@
-package com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment
+package com.doggetdrunk.meetjyou_android.ui.screen.notification.notify
 
 import android.os.Bundle
 import android.util.Log
@@ -18,7 +18,6 @@ import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.recyclervi
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.recyclerview.NotifyAdapter
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.recyclerview.NotifyModel
 import com.doggetdrunk.meetjyou_android.vm.NotifyVM
-import com.doggetdrunk.meetjyou_android.vm.PartyVM
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 

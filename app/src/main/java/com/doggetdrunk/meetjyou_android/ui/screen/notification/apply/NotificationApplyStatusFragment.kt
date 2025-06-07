@@ -1,4 +1,4 @@
-package com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment
+package com.doggetdrunk.meetjyou_android.ui.screen.notification.apply
 
 import android.os.Bundle
 import android.util.Log

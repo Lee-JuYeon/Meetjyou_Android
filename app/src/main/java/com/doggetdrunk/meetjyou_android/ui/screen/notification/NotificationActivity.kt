@@ -15,11 +15,10 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.doggetdrunk.meetjyou_android.R
 import com.doggetdrunk.meetjyou_android.databinding.ActivityNotificationBinding
 import com.doggetdrunk.meetjyou_android.ui.custom.base.BaseFragmentAdapter
-import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotificationNotifyFragment
-import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotificationApplyStatusFragment
-import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotificationRecruitmentStatusFragment
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.NotificationNotifyFragment
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.apply.NotificationApplyStatusFragment
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.NotificationRecruitmentStatusFragment
 import com.doggetdrunk.meetjyou_android.vm.NotifyVM
-import com.doggetdrunk.meetjyou_android.vm.PartyVM
 
 class NotificationActivity : AppCompatActivity() {
 

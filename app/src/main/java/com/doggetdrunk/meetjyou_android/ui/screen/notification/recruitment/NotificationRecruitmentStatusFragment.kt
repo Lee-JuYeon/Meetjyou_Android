@@ -1,4 +1,4 @@
-package com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment
+package com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment
 
 import android.os.Bundle
 import android.util.Log
@@ -12,8 +12,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.doggetdrunk.meetjyou_android.R
 import com.doggetdrunk.meetjyou_android.databinding.FragmentNotificationRecruitmentStatusBinding
+import com.doggetdrunk.meetjyou_android.ui.custom.bottomsheet.CustomBottomSheet
 import com.doggetdrunk.meetjyou_android.ui.custom.recyclerview.RecyclerItemGap
+import com.doggetdrunk.meetjyou_android.ui.custom.snackbar.CustomSnackBar
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotifyProfileFragment
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.IRecruitmentHolderClickListener
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentAdapter
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentModel
@@ -75,20 +79,49 @@ class NotificationRecruitmentStatusFragment : Fragment() {
     }
 
     private var recruitmentAdapter: RecruitmentAdapter? = null
+    private var sheet_userinfo : NotifyProfileFragment? = null
     private val recruitmentClickListener = object : IRecruitmentHolderClickListener<RecruitmentModel> {
         override fun onHolderClick(model: RecruitmentModel) {
-            Log.d("RecruitmentFragment", "Recruitment item clicked: ${model.userName}")
-            // TODO: 상세보기 화면으로 이동
+            if (sheet_userinfo == null)  sheet_userinfo = NotifyProfileFragment()
+
+            sheet_userinfo?.apply {
+                setModel(model)
+            }
+
+            CustomBottomSheet.create(requireContext())
+                .setTitle(model.userName)
+                .setDraggable(true)
+                .setExpandable(true)
+                .setContentFragment(sheet_userinfo!!)
+                .show()
+
         }
 
         override fun onDenied(model: RecruitmentModel) {
-            Log.d("RecruitmentFragment", "Recruitment denied: ${model.userName}")
             notifyVM.handleRecruitmentAction(model, false)
+
+            // CustomSnackBar로 거절 메시지 표시
+            CustomSnackBar(
+                parentView = requireActivity().findViewById<ViewGroup>(android.R.id.content),
+                message = requireContext().getString(R.string.snackbar_recruitment_denied),
+                drawableIcon = R.drawable.icon_check_round, // 실제로는 X 아이콘
+                drawableIconColour = R.color.snackbar_denied_icon,
+                backgroundColour = R.color.snackbar_denied_background
+            ).show()
+
         }
 
         override fun onAccept(model: RecruitmentModel) {
-            Log.d("RecruitmentFragment", "Recruitment accepted: ${model.userName}")
             notifyVM.handleRecruitmentAction(model, true)
+
+            // CustomSnackBar로 승낙 메시지 표시
+            CustomSnackBar(
+                parentView = requireActivity().findViewById<ViewGroup>(android.R.id.content),
+                message = requireContext().getString(R.string.snackbar_recruitment_accept),
+                drawableIcon = R.drawable.icon_check_round, // 실제로는 X 아이콘
+                drawableIconColour = R.color.snackbar_accept_icon,
+                backgroundColour = R.color.snackbar_accept_background
+            ).show()
         }
     }
 
