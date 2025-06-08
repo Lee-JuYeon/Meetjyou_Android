@@ -6,13 +6,13 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.doggetdrunk.meetjyou_android.binding.loadImageFromUrl
 import com.doggetdrunk.meetjyou_android.binding.setImageRes
-import com.doggetdrunk.meetjyou_android.databinding.HolerApplyBinding
 import com.doggetdrunk.meetjyou_android.R
+import com.doggetdrunk.meetjyou_android.databinding.HolderApplyBinding
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class ApplyViewHolder(
-    private val binding: HolerApplyBinding
+    private val binding: HolderApplyBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(model: ApplyModel, clickListener: IApplyHolderClickListener<ApplyModel>) {
@@ -81,7 +81,7 @@ class ApplyViewHolder(
     companion object {
         fun create(parent: ViewGroup): ApplyViewHolder {
             val layoutInflater = LayoutInflater.from(parent.context)
-            val binding = HolerApplyBinding.inflate(layoutInflater, parent, false)
+            val binding = HolderApplyBinding.inflate(layoutInflater, parent, false)
             return ApplyViewHolder(binding)
         }
     }

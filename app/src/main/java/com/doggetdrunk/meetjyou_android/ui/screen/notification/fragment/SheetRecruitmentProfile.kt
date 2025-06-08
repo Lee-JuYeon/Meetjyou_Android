@@ -12,16 +12,14 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.doggetdrunk.meetjyou_android.R
-import com.doggetdrunk.meetjyou_android.binding.loadSelfie
-import com.doggetdrunk.meetjyou_android.databinding.FragmentNotificationApplyStatusBinding
-import com.doggetdrunk.meetjyou_android.databinding.FragmentNotifyProfileBinding
+import com.doggetdrunk.meetjyou_android.databinding.SheetRecruitmentProfileBinding
 import com.doggetdrunk.meetjyou_android.ui.custom.chips.ChipItem
 import com.doggetdrunk.meetjyou_android.ui.custom.chips.ChipsView
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentModel
 
-class NotifyProfileFragment : Fragment() {
+class SheetRecruitmentProfile : Fragment() {
 
-    private var _binding : FragmentNotifyProfileBinding? = null
+    private var _binding : SheetRecruitmentProfileBinding? = null
     private val binding
         get() = _binding!!
 
@@ -31,7 +29,7 @@ class NotifyProfileFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        _binding = FragmentNotifyProfileBinding.inflate(inflater, container, false)
+        _binding = SheetRecruitmentProfileBinding.inflate(inflater, container, false)
         return binding.root
     }
 

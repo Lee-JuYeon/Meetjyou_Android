@@ -17,7 +17,7 @@ import com.doggetdrunk.meetjyou_android.databinding.FragmentNotificationRecruitm
 import com.doggetdrunk.meetjyou_android.ui.custom.bottomsheet.CustomBottomSheet
 import com.doggetdrunk.meetjyou_android.ui.custom.recyclerview.RecyclerItemGap
 import com.doggetdrunk.meetjyou_android.ui.custom.snackbar.CustomSnackBar
-import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.NotifyProfileFragment
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.SheetRecruitmentProfile
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.IRecruitmentHolderClickListener
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentAdapter
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentModel
@@ -79,13 +79,13 @@ class NotificationRecruitmentStatusFragment : Fragment() {
     }
 
     private var recruitmentAdapter: RecruitmentAdapter? = null
-    private var sheet_userinfo : NotifyProfileFragment? = null
+    private var sheet_userinfo : SheetRecruitmentProfile? = null
     private var currentBottomSheet: CustomBottomSheet? = null
     private val recruitmentClickListener = object : IRecruitmentHolderClickListener<RecruitmentModel> {
         override fun onHolderClick(model: RecruitmentModel) {
             try {
                 // NotifyProfileFragment 생성 및 데이터 설정
-                val profileFragment = NotifyProfileFragment().apply {
+                val profileFragment = SheetRecruitmentProfile().apply {
                     setModel(model)
                 }
 
