@@ -15,8 +15,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.doggetdrunk.meetjyou_android.R
 import com.doggetdrunk.meetjyou_android.databinding.FragmentNotificationRecruitmentStatusBinding
 import com.doggetdrunk.meetjyou_android.ui.custom.bottomsheet.CustomBottomSheet
+import com.doggetdrunk.meetjyou_android.ui.custom.popup.CustomPopupView
 import com.doggetdrunk.meetjyou_android.ui.custom.recyclerview.RecyclerItemGap
 import com.doggetdrunk.meetjyou_android.ui.custom.snackbar.CustomSnackBar
+import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.PopupRecruitmentProfile
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.fragment.SheetRecruitmentProfile
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.IRecruitmentHolderClickListener
 import com.doggetdrunk.meetjyou_android.ui.screen.notification.recruitment.recyclerview.RecruitmentAdapter
@@ -81,24 +83,48 @@ class NotificationRecruitmentStatusFragment : Fragment() {
     private var recruitmentAdapter: RecruitmentAdapter? = null
     private var sheet_userinfo : SheetRecruitmentProfile? = null
     private var currentBottomSheet: CustomBottomSheet? = null
+    private var popup_recruitment : PopupRecruitmentProfile? = null
     private val recruitmentClickListener = object : IRecruitmentHolderClickListener<RecruitmentModel> {
         override fun onHolderClick(model: RecruitmentModel) {
             try {
-                // NotifyProfileFragment 생성 및 데이터 설정
-                val profileFragment = SheetRecruitmentProfile().apply {
+                popup_recruitment = PopupRecruitmentProfile().apply {
                     setModel(model)
                 }
+                CustomPopupView.builder()
+                    .setContentFragment(popup_recruitment!!, "sample")
+                    .setDismissible(true)
+                    .setContentSize(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    .setContentMargins(32, 32, 32, 32)
+                    .setBackgroundDimAmount(0.7f)
+                    .setCallback(object : CustomPopupView.PopupCallback {
+                        override fun onShow() {
+                            // 팝업이 표시되었을 때
+                        }
 
-                // CustomBottomSheet 생성 및 표시
-                // CustomBottomSheetFragment 생성 및 설정
-                val bottomSheetFragment = CustomBottomSheet.newInstance()
-                    .setTitle("사용자의 프로필")
-                    .setDraggable(true)
-                    .setExpandable(true)
-                    .setContentFragment(profileFragment)
+                        override fun onDismiss() {
+                            // 팝업이 닫혔을 때
+                        }
+                    })
+                    .showPopup(this@NotificationRecruitmentStatusFragment, "custom_popup") // Context만!
 
-                // 표시 (parentFragmentManager 사용)
-                bottomSheetFragment.show(parentFragmentManager)
+//                // NotifyProfileFragment 생성 및 데이터 설정
+//                val profileFragment = SheetRecruitmentProfile().apply {
+//                    setModel(model)
+//                }
+//
+//                // CustomBottomSheet 생성 및 표시
+//                // CustomBottomSheetFragment 생성 및 설정
+//                val bottomSheetFragment = CustomBottomSheet.newInstance()
+//                    .setTitle("사용자의 프로필")
+//                    .setDraggable(true)
+//                    .setExpandable(true)
+//                    .setContentFragment(profileFragment)
+//
+//                // 표시 (parentFragmentManager 사용)
+//                bottomSheetFragment.show(parentFragmentManager)
             } catch (e: Exception) {
                 Log.e("mException", "NotificationRecruitmentStatusFragment / BottomSheet 표시 중 에러 발생: ${e.message}", e)
                 // 에러 발생 시 앱이 크래시되지 않도록 방지

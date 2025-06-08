@@ -1,3 +1,4 @@
+package com.doggetdrunk.meetjyou_android.ui.custom.popup
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
@@ -7,15 +8,70 @@ import android.view.*
 import android.widget.FrameLayout
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
 
-class CustomPopup: DialogFragment() {
+class CustomPopupView : DialogFragment() {
 
     companion object {
         const val TAG = "CustomPopupView"
 
-        fun newInstance(): CustomPopup {
-            return CustomPopup()
+        fun newInstance(): CustomPopupView {
+            return CustomPopupView()
+        }
+
+        // Context에서 자동으로 FragmentManager 찾기
+        private fun getFragmentManagerFromContext(context: Context): FragmentManager? {
+            return when (context) {
+                is FragmentActivity -> context.supportFragmentManager
+                else -> {
+                    // ContextWrapper나 다른 래퍼 클래스인 경우 재귀적으로 찾기
+                    var ctx = context
+                    while (ctx is android.content.ContextWrapper) {
+                        if (ctx is FragmentActivity) {
+                            return ctx.supportFragmentManager
+                        }
+                        ctx = ctx.baseContext
+                    }
+                    null
+                }
+            }
+        }
+
+        // Fragment에서 사용할 때 자동으로 적절한 FragmentManager 찾기
+        fun getFragmentManagerFromFragment(fragment: Fragment): FragmentManager {
+            return fragment.parentFragmentManager
+        }
+
+        // 간편한 팝업 생성 및 표시 (Context용) - tag 선택적
+        fun showPopup(context: Context, fragment: Fragment, tag: String = TAG): CustomPopupView {
+            val popup = newInstance()
+            popup.setContentFragment(fragment)
+            popup.showPopup(context, tag)
+            return popup
+        }
+
+        // 간편한 팝업 생성 및 표시 (Fragment용) - tag 선택적
+        fun showPopup(parentFragment: Fragment, contentFragment: Fragment, tag: String = TAG): CustomPopupView {
+            val popup = newInstance()
+            popup.setContentFragment(contentFragment)
+            popup.showPopup(parentFragment, tag)
+            return popup
+        }
+
+        // 가장 간단한 사용법 - tag 없이 (Context용)
+        fun showPopup(context: Context, fragment: Fragment): CustomPopupView {
+            return showPopup(context, fragment, TAG)
+        }
+
+        // 가장 간단한 사용법 - tag 없이 (Fragment용)
+        fun showPopup(parentFragment: Fragment, contentFragment: Fragment): CustomPopupView {
+            return showPopup(parentFragment, contentFragment, TAG)
+        }
+
+        // 빌더 패턴을 위한 정적 메서드
+        fun builder(): CustomPopupViewBuilder {
+            return CustomPopupViewBuilder()
         }
     }
 
@@ -33,20 +89,17 @@ class CustomPopup: DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // 다이얼로그 스타일 설정
         setStyle(STYLE_NO_TITLE, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val dialog = super.onCreateDialog(savedInstanceState)
 
-        // 다이얼로그 윈도우 설정
         dialog.window?.apply {
             setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             setGravity(Gravity.CENTER)
 
-            // 상태바 투명 설정 (선택사항)
             addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
             statusBarColor = Color.TRANSPARENT
         }
@@ -65,7 +118,6 @@ class CustomPopup: DialogFragment() {
     private fun createPopupLayout(): View {
         val context = requireContext()
 
-        // 루트 컨테이너 (전체 화면, 반투명 배경)
         val rootContainer = FrameLayout(context).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -73,7 +125,6 @@ class CustomPopup: DialogFragment() {
             )
             setBackgroundColor(Color.parseColor("#80000000"))
 
-            // 배경 터치 시 닫기
             setOnClickListener {
                 if (isDismissible) {
                     dismiss()
@@ -81,7 +132,6 @@ class CustomPopup: DialogFragment() {
             }
         }
 
-        // 컨텐츠 컨테이너
         contentContainer = FrameLayout(context).apply {
             id = containerId
             layoutParams = FrameLayout.LayoutParams(
@@ -95,18 +145,15 @@ class CustomPopup: DialogFragment() {
             setBackgroundColor(Color.WHITE)
             elevation = 16f
 
-            // 모서리 둥글게 (API 21+)
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                 outlineProvider = ViewOutlineProvider.BACKGROUND
                 clipToOutline = true
             }
 
-            // 컨텐츠 영역 터치 시 이벤트 소비
             setOnClickListener { /* 이벤트 소비 */ }
         }
 
         rootContainer.addView(contentContainer)
-
         return rootContainer
     }
 
@@ -115,9 +162,6 @@ class CustomPopup: DialogFragment() {
         callback?.onShow()
     }
 
-    /**
-     * Fragment를 팝업에 표시
-     */
     fun setContentFragment(fragment: Fragment, tag: String? = null) {
         if (::contentContainer.isInitialized) {
             childFragmentManager.beginTransaction()
@@ -126,9 +170,6 @@ class CustomPopup: DialogFragment() {
         }
     }
 
-    /**
-     * Fragment 교체 (애니메이션 포함)
-     */
     fun replaceContentFragment(fragment: Fragment, tag: String? = null, addToBackStack: Boolean = false) {
         if (::contentContainer.isInitialized) {
             val transaction = childFragmentManager.beginTransaction()
@@ -148,30 +189,34 @@ class CustomPopup: DialogFragment() {
         }
     }
 
-    /**
-     * 팝업 표시
-     */
-    fun show(fragmentManager: FragmentManager, tag: String = TAG) {
-        if (!isAdded && !isVisible) {
+    // Context를 받아서 자동으로 표시 (핵심 개선사항)
+    fun showPopup(context: Context, tag: String = TAG) {
+        val fragmentManager = getFragmentManagerFromContext(context)
+        fragmentManager?.let { fm ->
+            showSafely(fm, tag)
+        } ?: throw IllegalArgumentException("Cannot find FragmentManager from the given context")
+    }
+
+    // Fragment를 받아서 자동으로 표시
+    fun showPopup(fragment: Fragment, tag: String = TAG) {
+        val fragmentManager = getFragmentManagerFromFragment(fragment)
+        showSafely(fragmentManager, tag)
+    }
+
+    // 기존 방식도 유지 (하위 호환성)
+    fun showPopup(fragmentManager: FragmentManager, tag: String = TAG) {
+        showSafely(fragmentManager, tag)
+    }
+
+    private fun showSafely(fragmentManager: FragmentManager, tag: String) {
+        if (fragmentManager.isStateSaved) return
+
+        val existingFragment = fragmentManager.findFragmentByTag(tag)
+        if (existingFragment == null && !isAdded && !isVisible) {
             super.show(fragmentManager, tag)
         }
     }
 
-    /**
-     * 안전한 팝업 표시 (중복 방지)
-     */
-    fun showSafely(fragmentManager: FragmentManager, tag: String = TAG) {
-        if (fragmentManager.isStateSaved) return
-
-        val existingFragment = fragmentManager.findFragmentByTag(tag)
-        if (existingFragment == null) {
-            show(fragmentManager, tag)
-        }
-    }
-
-    /**
-     * 백 버튼 처리
-     */
     fun onBackPressed(): Boolean {
         return if (childFragmentManager.backStackEntryCount > 0) {
             childFragmentManager.popBackStack()
@@ -184,21 +229,19 @@ class CustomPopup: DialogFragment() {
         }
     }
 
-    /**
-     * 팝업 설정 메서드들
-     */
-    fun setDismissible(dismissible: Boolean): CustomPopup {
+    // 설정 메서드들
+    fun setDismissible(dismissible: Boolean): CustomPopupView {
         isDismissible = dismissible
         isCancelable = dismissible
         return this
     }
 
-    fun setCallback(callback: PopupCallback): CustomPopup {
+    fun setCallback(callback: PopupCallback): CustomPopupView {
         this.callback = callback
         return this
     }
 
-    fun setContentSize(width: Int, height: Int): CustomPopup {
+    fun setContentSize(width: Int, height: Int): CustomPopupView {
         if (::contentContainer.isInitialized) {
             contentContainer.layoutParams = FrameLayout.LayoutParams(width, height, Gravity.CENTER).apply {
                 setMargins(48, 48, 48, 48)
@@ -207,21 +250,21 @@ class CustomPopup: DialogFragment() {
         return this
     }
 
-    fun setContentMargins(left: Int, top: Int, right: Int, bottom: Int): CustomPopup {
+    fun setContentMargins(left: Int, top: Int, right: Int, bottom: Int): CustomPopupView {
         if (::contentContainer.isInitialized) {
             (contentContainer.layoutParams as? FrameLayout.LayoutParams)?.setMargins(left, top, right, bottom)
         }
         return this
     }
 
-    fun setContentBackground(color: Int): CustomPopup {
+    fun setContentBackground(color: Int): CustomPopupView {
         if (::contentContainer.isInitialized) {
             contentContainer.setBackgroundColor(color)
         }
         return this
     }
 
-    fun setBackgroundDimAmount(alpha: Float): CustomPopup {
+    fun setBackgroundDimAmount(alpha: Float): CustomPopupView {
         dialog?.window?.setDimAmount(alpha)
         return this
     }
@@ -238,10 +281,8 @@ class CustomPopup: DialogFragment() {
 }
 
 // 확장 함수들
-fun CustomPopup.Builder() = CustomPopupViewBuilder()
-
 class CustomPopupViewBuilder {
-    private val popup = CustomPopup.newInstance()
+    private val popup = CustomPopupView.newInstance()
     private var fragment: Fragment? = null
     private var fragmentTag: String? = null
 
@@ -256,7 +297,7 @@ class CustomPopupViewBuilder {
         return this
     }
 
-    fun setCallback(callback: CustomPopup.PopupCallback): CustomPopupViewBuilder {
+    fun setCallback(callback: CustomPopupView.PopupCallback): CustomPopupViewBuilder {
         popup.setCallback(callback)
         return this
     }
@@ -281,14 +322,35 @@ class CustomPopupViewBuilder {
         return this
     }
 
-    fun build(): CustomPopup {
+    fun build(): CustomPopupView {
         fragment?.let {
             popup.setContentFragment(it, fragmentTag)
         }
         return popup
     }
 
-    fun show(fragmentManager: FragmentManager, tag: String = CustomPopup.TAG) {
-        build().showSafely(fragmentManager, tag)
+    // Context를 받는 showPopup 메서드 - tag 선택적
+    fun showPopup(context: Context, tag: String = CustomPopupView.TAG) {
+        build().showPopup(context, tag)
+    }
+
+    // Fragment를 받는 showPopup 메서드 - tag 선택적
+    fun showPopup(fragment: Fragment, tag: String = CustomPopupView.TAG) {
+        build().showPopup(fragment, tag)
+    }
+
+    // 기존 방식도 유지 - tag 선택적
+    fun showPopup(fragmentManager: FragmentManager, tag: String = CustomPopupView.TAG) {
+        build().showPopup(fragmentManager, tag)
+    }
+
+    // 가장 간단한 사용법 - tag 없이 (Context용)
+    fun showPopup(context: Context) {
+        showPopup(context, CustomPopupView.TAG)
+    }
+
+    // 가장 간단한 사용법 - tag 없이 (Fragment용)
+    fun showPopup(fragment: Fragment) {
+        showPopup(fragment, CustomPopupView.TAG)
     }
 }

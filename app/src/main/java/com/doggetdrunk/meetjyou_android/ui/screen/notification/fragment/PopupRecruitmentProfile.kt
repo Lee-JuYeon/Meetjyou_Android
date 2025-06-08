@@ -41,24 +41,24 @@ class PopupRecruitmentProfile : Fragment() {
 
 
     private fun setUI(){
-        setTitleEditText(binding.name)
-        setDescriptionText(binding.description)
+        setTitleView(binding.title)
+        setDescriptionView(binding.description)
     }
 
 
-    private fun setTitleEditText(editText: EditText){
+    private fun setTitleView(textView: TextView){
         try {
             textView.text = recruitmentModel?.userName
         }catch (e:Exception){
-            Log.e("mException", "NotifyProfileFragment, setUserName // Exception : ${e.localizedMessage}")
+            Log.e("mException", "PopupRecruitmentProfile, setTitleView // Exception : ${e.localizedMessage}")
         }
     }
 
-    private fun setDescriptionText(editText: EditText){
+    private fun setDescriptionView(textView: TextView){
         try {
             textView.text = recruitmentModel?.userDescription
         }catch (e:Exception){
-            Log.e("mException", "NotifyProfileFragment, setUserDescription // Exception : ${e.localizedMessage}")
+            Log.e("mException", "PopupRecruitmentProfile, setDescriptionView // Exception : ${e.localizedMessage}")
         }
     }
 
