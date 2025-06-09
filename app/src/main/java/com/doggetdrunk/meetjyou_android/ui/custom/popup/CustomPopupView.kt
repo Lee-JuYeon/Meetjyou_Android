@@ -3,13 +3,16 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import com.google.android.material.internal.ViewUtils.dpToPx
 
 class CustomPopupView : DialogFragment() {
 
@@ -115,6 +118,10 @@ class CustomPopupView : DialogFragment() {
         return createPopupLayout()
     }
 
+    private fun dpToPx(context: Context, dp: Int): Int {
+        return (dp * context.resources.displayMetrics.density).toInt()
+    }
+
     private fun createPopupLayout(): View {
         val context = requireContext()
 
@@ -141,9 +148,21 @@ class CustomPopupView : DialogFragment() {
             ).apply {
                 setMargins(48, 48, 48, 48)
             }
+            // 코드로 배경 drawable 생성 및 설정
+            background = GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                setColor(Color.WHITE) // 흰색 배경
+                cornerRadius = dpToPx(context, 10).toFloat() // 20dp 라운드
+            }
 
-            setBackgroundColor(Color.WHITE)
+            // padding 설정 (10dp)
+            val paddingPx = dpToPx(context, 20)
+            setPadding(paddingPx, paddingPx, paddingPx, paddingPx)
+
             elevation = 16f
+
+            // 최소 높이 설정으로 fragment가 제대로 표시되도록 함
+            minimumHeight = 20
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                 outlineProvider = ViewOutlineProvider.BACKGROUND
@@ -157,16 +176,42 @@ class CustomPopupView : DialogFragment() {
         return rootContainer
     }
 
+    private var contentFragment: Fragment? = null
+    private var contentFragmentTag: String? = null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Fragment 추가를 onViewCreated에서 수행
+        contentFragment?.let { fragment ->
+            addContentFragmentNow(fragment, contentFragmentTag)
+        }
+
         callback?.onShow()
     }
 
+    private fun addContentFragmentNow(fragment: Fragment, tag: String?) {
+        try {
+            Log.d("CustomPopupView", "Adding fragment: ${fragment::class.simpleName}")
+
+            if (::contentContainer.isInitialized && !childFragmentManager.isStateSaved) {
+                childFragmentManager.beginTransaction()
+                    .replace(containerId, fragment, tag)
+                    .commitNow() // commitNow() 사용으로 즉시 실행
+
+                Log.d("CustomPopupView", "Fragment added successfully")
+            }
+        } catch (e: Exception) {
+            Log.e("CustomPopupView", "Error adding fragment: ${e.message}", e)
+        }
+    }
+
     fun setContentFragment(fragment: Fragment, tag: String? = null) {
-        if (::contentContainer.isInitialized) {
-            childFragmentManager.beginTransaction()
-                .replace(containerId, fragment, tag)
-                .commit()
+        this.contentFragment = fragment
+        this.contentFragmentTag = tag
+
+        // 이미 View가 생성되었다면 즉시 추가
+        if (isAdded && view != null) {
+            addContentFragmentNow(fragment, tag)
         }
     }
 
@@ -323,25 +368,44 @@ class CustomPopupViewBuilder {
     }
 
     fun build(): CustomPopupView {
-        fragment?.let {
-            popup.setContentFragment(it, fragmentTag)
-        }
+        // Fragment를 여기서 설정하지 말고 show할 때 설정
         return popup
     }
 
     // Context를 받는 showPopup 메서드 - tag 선택적
     fun showPopup(context: Context, tag: String = CustomPopupView.TAG) {
-        build().showPopup(context, tag)
+        val builtPopup = build()
+
+        // Fragment 설정을 show 직전에 수행
+        this.fragment?.let {
+            builtPopup.setContentFragment(it, fragmentTag)
+        }
+
+        builtPopup.showPopup(context, tag)
     }
 
     // Fragment를 받는 showPopup 메서드 - tag 선택적
     fun showPopup(fragment: Fragment, tag: String = CustomPopupView.TAG) {
-        build().showPopup(fragment, tag)
+        val builtPopup = build()
+
+        // Fragment 설정을 show 직전에 수행
+        this.fragment?.let {
+            builtPopup.setContentFragment(it, fragmentTag)
+        }
+
+        builtPopup.showPopup(fragment, tag)
     }
 
     // 기존 방식도 유지 - tag 선택적
     fun showPopup(fragmentManager: FragmentManager, tag: String = CustomPopupView.TAG) {
-        build().showPopup(fragmentManager, tag)
+        val builtPopup = build()
+
+        // Fragment 설정을 show 직전에 수행
+        this.fragment?.let {
+            builtPopup.setContentFragment(it, fragmentTag)
+        }
+
+        builtPopup.showPopup(fragmentManager, tag)
     }
 
     // 가장 간단한 사용법 - tag 없이 (Context용)

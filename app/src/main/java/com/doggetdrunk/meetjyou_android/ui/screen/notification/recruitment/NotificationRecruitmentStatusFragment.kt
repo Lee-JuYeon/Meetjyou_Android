@@ -90,8 +90,9 @@ class NotificationRecruitmentStatusFragment : Fragment() {
                 popup_recruitment = PopupRecruitmentProfile().apply {
                     setModel(model)
                 }
-                CustomPopupView.builder()
-                    .setContentFragment(popup_recruitment!!, "sample")
+
+                // CustomPopupView 생성
+                val customPopup = CustomPopupView.newInstance()
                     .setDismissible(true)
                     .setContentSize(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -101,14 +102,19 @@ class NotificationRecruitmentStatusFragment : Fragment() {
                     .setBackgroundDimAmount(0.7f)
                     .setCallback(object : CustomPopupView.PopupCallback {
                         override fun onShow() {
-                            // 팝업이 표시되었을 때
+                            Log.d("RecruitmentFragment", "Popup shown")
                         }
 
                         override fun onDismiss() {
-                            // 팝업이 닫혔을 때
+                            Log.d("RecruitmentFragment", "Popup dismissed")
                         }
                     })
-                    .showPopup(this@NotificationRecruitmentStatusFragment, "custom_popup") // Context만!
+
+                // Fragment 설정
+                customPopup.setContentFragment(popup_recruitment!!, "recruitment_popup")
+
+                // 표시
+                customPopup.showPopup(this@NotificationRecruitmentStatusFragment, "recruitment_popup")
 
 //                // NotifyProfileFragment 생성 및 데이터 설정
 //                val profileFragment = SheetRecruitmentProfile().apply {
