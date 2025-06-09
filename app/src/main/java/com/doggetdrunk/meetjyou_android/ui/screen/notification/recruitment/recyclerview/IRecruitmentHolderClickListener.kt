@@ -5,6 +5,8 @@ import com.doggetdrunk.meetjyou_android.ui.screen.notification.notify.recyclervi
 
 interface IRecruitmentHolderClickListener<RecruitmentModel> {
     fun onHolderClick(model: RecruitmentModel)
+    fun onProfileClick(model : RecruitmentModel)
+    fun onContentClick(model : RecruitmentModel)
     fun onDenied(model: RecruitmentModel)
     fun onAccept(model : RecruitmentModel)
 }

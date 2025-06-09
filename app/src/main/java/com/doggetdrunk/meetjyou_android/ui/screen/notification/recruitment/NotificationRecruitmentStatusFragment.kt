@@ -85,6 +85,67 @@ class NotificationRecruitmentStatusFragment : Fragment() {
     private var currentBottomSheet: CustomBottomSheet? = null
     private var popup_recruitment : PopupRecruitmentProfile? = null
     private val recruitmentClickListener = object : IRecruitmentHolderClickListener<RecruitmentModel> {
+        override fun onProfileClick(model: RecruitmentModel) {
+            if (sheet_userinfo == null){
+                // NotifyProfileFragment 생성 및 데이터 설정
+                sheet_userinfo = SheetRecruitmentProfile().apply {
+                    setModel(model)
+                }
+            }else{
+                sheet_userinfo?.apply {
+                    setModel(model)
+                }
+            }
+
+            // CustomBottomSheet 생성 및 표시
+            // CustomBottomSheetFragment 생성 및 설정
+            val bottomSheetFragment = CustomBottomSheet.newInstance()
+                .setTitle("사용자의 프로필")
+                .setDraggable(true)
+                .setExpandable(true)
+                .setContentFragment(sheet_userinfo!!)
+
+            // 표시 (parentFragmentManager 사용)
+            bottomSheetFragment.show(parentFragmentManager)
+        }
+
+        override fun onContentClick(model: RecruitmentModel) {
+            try {
+                popup_recruitment = PopupRecruitmentProfile().apply {
+                    setModel(model)
+                }
+
+                // CustomPopupView 생성
+                val customPopup = CustomPopupView.newInstance()
+                    .setDismissible(true)
+                    .setContentSize(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    .setContentMargins(32, 32, 32, 32)
+                    .setBackgroundDimAmount(0.7f)
+                    .setCallback(object : CustomPopupView.PopupCallback {
+                        override fun onShow() {
+                            Log.d("RecruitmentFragment", "Popup shown")
+                        }
+
+                        override fun onDismiss() {
+                            Log.d("RecruitmentFragment", "Popup dismissed")
+                        }
+                    })
+
+                // Fragment 설정
+                customPopup.setContentFragment(popup_recruitment!!, "recruitment_popup")
+
+                // 표시
+                customPopup.showPopup(this@NotificationRecruitmentStatusFragment, "recruitment_popup")
+
+
+            } catch (e: Exception) {
+                Log.e("mException", "NotificationRecruitmentStatusFragment / BottomSheet 표시 중 에러 발생: ${e.message}", e)
+                // 에러 발생 시 앱이 크래시되지 않도록 방지
+            }
+        }
         override fun onHolderClick(model: RecruitmentModel) {
             try {
                 popup_recruitment = PopupRecruitmentProfile().apply {
@@ -116,28 +177,11 @@ class NotificationRecruitmentStatusFragment : Fragment() {
                 // 표시
                 customPopup.showPopup(this@NotificationRecruitmentStatusFragment, "recruitment_popup")
 
-//                // NotifyProfileFragment 생성 및 데이터 설정
-//                val profileFragment = SheetRecruitmentProfile().apply {
-//                    setModel(model)
-//                }
-//
-//                // CustomBottomSheet 생성 및 표시
-//                // CustomBottomSheetFragment 생성 및 설정
-//                val bottomSheetFragment = CustomBottomSheet.newInstance()
-//                    .setTitle("사용자의 프로필")
-//                    .setDraggable(true)
-//                    .setExpandable(true)
-//                    .setContentFragment(profileFragment)
-//
-//                // 표시 (parentFragmentManager 사용)
-//                bottomSheetFragment.show(parentFragmentManager)
+
             } catch (e: Exception) {
                 Log.e("mException", "NotificationRecruitmentStatusFragment / BottomSheet 표시 중 에러 발생: ${e.message}", e)
-                // 에러 발생 시 앱이 크래시되지 않도록 방지
             }
-
         }
-
         override fun onDenied(model: RecruitmentModel) {
             notifyVM.handleRecruitmentAction(model, false)
 

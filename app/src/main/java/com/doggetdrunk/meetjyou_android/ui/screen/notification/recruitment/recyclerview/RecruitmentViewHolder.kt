@@ -35,6 +35,14 @@ class RecruitmentViewHolder(
                 clickListener.onHolderClick(model)
             }
 
+            selfie.setOnClickListener {
+                clickListener.onProfileClick(model)
+            }
+
+            content.setOnClickListener {
+                clickListener.onContentClick(model)
+            }
+
             denied.setOnClickListener {
                 clickListener.onDenied(model)
             }
